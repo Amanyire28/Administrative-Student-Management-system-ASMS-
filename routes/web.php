@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\HomeComtroller;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-Route::get('/index',[HomeComtroller::class,'index']);
+// Landing page
+Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
+
+// Dashboard (will require auth later)
+Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+
+// Legacy route for compatibility
+Route::get('/index', [HomeController::class, 'welcome'])->name('index');
