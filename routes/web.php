@@ -19,17 +19,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Landing page
-Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
+// Redirect to login if not authenticated, dashboard if authenticated
+Route::get('/', function () {
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+});
 
-// Dashboard (will require auth later)
-Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+// Dashboard (protected by authentication)
+Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth:sanctum', 'verified'])->name('dashboard');
 
 // Legacy route for compatibility
 Route::get('/index', [HomeController::class, 'welcome'])->name('index');
 
-// Admin Routes (will add auth middleware later)
-Route::prefix('admin')->group(function () {
+// Admin Routes (protected by authentication)
+Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function () {
     
     // Student Management Routes
     Route::resource('students', StudentController::class);
