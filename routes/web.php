@@ -30,6 +30,14 @@ Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth:sa
 // Legacy route for compatibility
 Route::get('/index', [HomeController::class, 'welcome'])->name('index');
 
+// Logout route
+Route::post('/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->middleware('auth')->name('logout');
+
 // Admin Routes (protected by authentication)
 Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function () {
     
