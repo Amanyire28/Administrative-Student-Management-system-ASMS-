@@ -17,10 +17,9 @@ class CreateAnnouncementsTable extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->enum('type', ['general', 'academic', 'event', 'urgent'])->default('general');
             $table->boolean('is_active')->default(true);
-            $table->date('expires_at')->nullable();
+            $table->date('valid_until')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

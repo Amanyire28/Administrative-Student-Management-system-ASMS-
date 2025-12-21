@@ -27,9 +27,6 @@
                                 <span class="badge {{ $announcement->getTypeBadgeClass() }}">
                                     {{ ucfirst($announcement->type) }}
                                 </span>
-                                <span class="badge {{ $announcement->getPriorityBadgeClass() }}">
-                                    {{ ucfirst($announcement->priority) }} Priority
-                                </span>
                                 @if($announcement->is_active && !$announcement->isExpired())
                                     <span class="badge bg-success">Active</span>
                                 @elseif($announcement->isExpired())
@@ -73,10 +70,10 @@
                                 @endif
                                 
                                 <div class="mb-3">
-                                    <small class="text-muted d-block">Expires On</small>
+                                    <small class="text-muted d-block">Valid Until</small>
                                     <strong>
-                                        @if($announcement->expires_at)
-                                            {{ $announcement->expires_at->format('M d, Y') }}
+                                        @if($announcement->valid_until)
+                                            {{ $announcement->valid_until->format('M d, Y') }}
                                             @if($announcement->isExpired())
                                                 <span class="text-danger">(Expired)</span>
                                             @endif

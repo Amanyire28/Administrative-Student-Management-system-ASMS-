@@ -66,31 +66,15 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('priority') is-invalid @enderror" 
-                                            id="priority" 
-                                            name="priority" 
-                                            required>
-                                        <option value="">Select Priority</option>
-                                        <option value="low" {{ old('priority', $announcement->priority) == 'low' ? 'selected' : '' }}>Low</option>
-                                        <option value="medium" {{ old('priority', $announcement->priority) == 'medium' ? 'selected' : '' }}>Medium</option>
-                                        <option value="high" {{ old('priority', $announcement->priority) == 'high' ? 'selected' : '' }}>High</option>
-                                    </select>
-                                    @error('priority')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="expires_at" class="form-label">Expires On</label>
+                                    <label for="valid_until" class="form-label">Valid Until</label>
                                     <input type="date" 
-                                           class="form-control @error('expires_at') is-invalid @enderror" 
-                                           id="expires_at" 
-                                           name="expires_at" 
-                                           value="{{ old('expires_at', $announcement->expires_at?->format('Y-m-d')) }}"
+                                           class="form-control @error('valid_until') is-invalid @enderror" 
+                                           id="valid_until" 
+                                           name="valid_until" 
+                                           value="{{ old('valid_until', $announcement->valid_until?->format('Y-m-d')) }}"
                                            min="{{ date('Y-m-d', strtotime('+1 day')) }}">
                                     <small class="form-text text-muted">Leave empty for no expiration</small>
-                                    @error('expires_at')
+                                    @error('valid_until')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

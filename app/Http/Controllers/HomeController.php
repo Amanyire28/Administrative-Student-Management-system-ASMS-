@@ -25,9 +25,8 @@ class HomeController extends Controller
     public function index()
     {
         $recentAnnouncements = Announcement::active()
-            ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'desc')
-            ->limit(5)
+            ->limit(2)
             ->get();
 
         return view('dashboard.index', compact('recentAnnouncements'));

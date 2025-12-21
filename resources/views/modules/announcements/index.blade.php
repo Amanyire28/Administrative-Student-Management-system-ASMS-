@@ -29,10 +29,9 @@
                                     <tr>
                                         <th>Title</th>
                                         <th>Type</th>
-                                        <th>Priority</th>
                                         <th>Status</th>
                                         <th>Created By</th>
-                                        <th>Expires</th>
+                                        <th>Valid Until</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -49,11 +48,6 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge {{ $announcement->getPriorityBadgeClass() }}">
-                                                    {{ ucfirst($announcement->priority) }}
-                                                </span>
-                                            </td>
-                                            <td>
                                                 @if($announcement->is_active && !$announcement->isExpired())
                                                     <span class="badge bg-success">Active</span>
                                                 @elseif($announcement->isExpired())
@@ -64,7 +58,7 @@
                                             </td>
                                             <td>{{ $announcement->creator->name }}</td>
                                             <td>
-                                                {{ $announcement->expires_at ? $announcement->expires_at->format('M d, Y') : 'Never' }}
+                                                {{ $announcement->valid_until ? $announcement->valid_until->format('M d, Y') : 'Never' }}
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">

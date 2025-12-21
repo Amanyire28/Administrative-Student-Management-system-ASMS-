@@ -99,17 +99,12 @@
                                 <div class="announcement-item mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h6 class="fw-bold mb-1">{{ Str::limit($announcement->title, 30) }}</h6>
-                                        <span class="badge {{ $announcement->getPriorityBadgeClass() }} badge-sm">
-                                            {{ ucfirst($announcement->priority) }}
-                                        </span>
-                                    </div>
-                                    <p class="text-muted small mb-2">{{ Str::limit($announcement->content, 80) }}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
                                         <span class="badge {{ $announcement->getTypeBadgeClass() }} badge-sm">
                                             {{ ucfirst($announcement->type) }}
                                         </span>
-                                        <small class="text-muted">{{ $announcement->created_at->diffForHumans() }}</small>
                                     </div>
+                                    <p class="text-muted small mb-2">{{ Str::limit($announcement->content, 80) }}</p>
+                                    <small class="text-muted">{{ $announcement->created_at->diffForHumans() }}</small>
                                 </div>
                             @endforeach
                         @else

@@ -11,7 +11,6 @@ class AnnouncementController extends Controller
     public function index()
     {
         $announcements = Announcement::with('creator')
-            ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -28,17 +27,15 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'priority' => 'required|in:low,medium,high',
             'type' => 'required|in:general,academic,event,urgent',
-            'expires_at' => 'nullable|date|after:today',
+            'valid_until' => 'nullable|date|after:today',
         ]);
 
         Announcement::create([
             'title' => $request->title,
             'content' => $request->content,
-            'priority' => $request->priority,
             'type' => $request->type,
-            'expires_at' => $request->expires_at,
+            'valid_until' => $request->valid_until,
             'created_by' => Auth::id(),
         ]);
 
@@ -61,18 +58,16 @@ class AnnouncementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'priority' => 'required|in:low,medium,high',
             'type' => 'required|in:general,academic,event,urgent',
-            'expires_at' => 'nullable|date|after:today',
+            'valid_until' => 'nullable|date|after:today',
             'is_active' => 'boolean',
         ]);
 
         $announcement->update([
             'title' => $request->title,
             'content' => $request->content,
-            'priority' => $request->priority,
             'type' => $request->type,
-            'expires_at' => $request->expires_at,
+            'valid_until' => $request->valid_until,
             'is_active' => $request->has('is_active'),
         ]);
 

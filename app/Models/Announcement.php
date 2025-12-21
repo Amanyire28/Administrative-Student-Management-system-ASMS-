@@ -12,15 +12,14 @@ class Announcement extends Model
     protected $fillable = [
         'title',
         'content',
-        'priority',
         'type',
         'is_active',
-        'expires_at',
+        'valid_until',
         'created_by',
     ];
 
     protected $casts = [
-        'expires_at' => 'date',
+        'valid_until' => 'date',
         'is_active' => 'boolean',
     ];
 
@@ -33,14 +32,9 @@ class Announcement extends Model
     {
         return $query->where('is_active', true)
                     ->where(function ($q) {
-                        $q->whereNull('expires_at')
-                          ->orWhere('expires_at', '>=', now()->toDateString());
+                        $q->whereNull('valid_until')
+                          ->orWhere('valid_until', '>=', now()->toDateString());
                     });
-    }
-
-    public function scopeByPriority($query, $priority)
-    {
-        return $query->where('priority', $priority);
     }
 
     public function scopeByType($query, $type)
@@ -50,17 +44,7 @@ class Announcement extends Model
 
     public function isExpired()
     {
-        return $this->expires_at && $this->expires_at < now()->toDateString();
-    }
-
-    public function getPriorityBadgeClass()
-    {
-        return match($this->priority) {
-            'high' => 'bg-danger',
-            'medium' => 'bg-warning',
-            'low' => 'bg-info',
-            default => 'bg-secondary'
-        };
+        return $this->valid_until && $this->valid_until < now()->toDateString();
     }
 
     public function getTypeBadgeClass()
