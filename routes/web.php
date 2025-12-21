@@ -6,6 +6,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,5 +62,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
     Route::post('marks-entry', [MarkController::class, 'entry'])->name('marks.entry');
     Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])->name('marks.store.multiple');
     Route::get('report-card/{student}', [MarkController::class, 'reportCard'])->name('report.card');
+    
+    // Announcement Management Routes
+    Route::resource('announcements', AnnouncementController::class);
+    Route::patch('announcements/{announcement}/toggle', [AnnouncementController::class, 'toggle'])
+         ->name('announcements.toggle');
     
 });

@@ -1,58 +1,71 @@
-<div class="sidebar p-3">
-    <div class="sidebar-profile d-flex flex-column align-items-center mb-3">
-        <div class="avatar" aria-hidden="true">MA</div>
-        <div class="profile-name mt-2">Mathew Amanyire</div>
-        <div class="profile-role">Administrator</div>
+<div class="sidebar">
+    <!-- Logo/Brand Section -->
+    <div class="sidebar-header text-center py-3 border-bottom border-light border-opacity-25">
+        <h5 class="text-white fw-bold mb-0">ASMS</h5>
+        <small class="text-white-50">Student Management</small>
+    </div>
+
+    <!-- Dynamic User Profile -->
+    <div class="sidebar-profile d-flex flex-column align-items-center py-3 border-bottom border-light border-opacity-25">
+        <div class="avatar mb-2">
+            {{ strtoupper(substr(auth()->user()->name ?? 'Admin', 0, 2)) }}
+        </div>
+        <div class="profile-name">{{ auth()->user()->name ?? 'Administrator' }}</div>
+        <div class="profile-role">{{ ucfirst(auth()->user()->role ?? 'admin') }}</div>
     </div>
     
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                Students
-            </a>
-        </li>
-        <li class="nav-item dropdown-sub">
-            <a href="#" class="nav-link" aria-haspopup="true" aria-expanded="false">
-                Academic <span class="caret">▾</span>
-            </a>
-            <ul class="dropdown-submenu list-unstyled" role="menu">
-                <li>
-                    <a href="{{ route('classes.index') }}" class="nav-link sub-link {{ request()->routeIs('classes.*') ? 'active' : '' }}" role="menuitem">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M3 6l9-4 9 4v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/>
-                        </svg>
-                        Classes
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('subjects.index') }}" class="nav-link sub-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}" role="menuitem">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M3 7h18v2H3V7zm0 6h18v2H3v-2z" fill="currentColor"/>
-                        </svg>
-                        Subjects
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('marks.index') }}" class="nav-link {{ request()->routeIs('marks.*') ? 'active' : '' }}">
-                Marks
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                Teachers
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('marks.entry.form') }}" class="nav-link {{ request()->routeIs('marks.entry*') ? 'active' : '' }}">
-                Enter Marks
-            </a>
-        </li>
-    </ul>
+    <!-- Navigation Menu -->
+    <div class="sidebar-nav px-3 py-2">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('classes.index') }}" class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                    <i class="fas fa-chalkboard me-2"></i>
+                    <span>Classes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('subjects.index') }}" class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
+                    <i class="fas fa-book me-2"></i>
+                    <span>Subjects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('marks.index') }}" class="nav-link {{ request()->routeIs('marks.*') ? 'active' : '' }}">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <span>Marks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('announcements.index') }}" class="nav-link {{ request()->routeIs('announcements.*') ? 'active' : '' }}">
+                    <i class="fas fa-bullhorn me-2"></i>
+                    <span>Announcements</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    <span>Teachers</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer mt-auto p-3 border-top border-light border-opacity-25">
+        <div class="text-center">
+            <small class="text-white-50">© 2025 ASMS v1.0</small>
+        </div>
+    </div>
 </div>

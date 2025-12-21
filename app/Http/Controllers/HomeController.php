@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -23,7 +24,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('dashboard.index');
+        $recentAnnouncements = Announcement::active()
+            ->orderBy('priority', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('dashboard.index', compact('recentAnnouncements'));
     }
 
     /**

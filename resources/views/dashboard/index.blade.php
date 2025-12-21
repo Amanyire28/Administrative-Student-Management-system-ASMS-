@@ -89,13 +89,38 @@
 
             <div class="col-md-4">
                 <div class="card shadow-sm">
-                    <div class="card-header fw-bold bg-light">Short Notices</div>
+                    <div class="card-header fw-bold bg-light d-flex justify-content-between align-items-center">
+                        <span>Recent Announcements</span>
+                        <a href="{{ route('announcements.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
                     <div class="card-body">
-                        <h6 class="fw-bold">Upcoming Term</h6>
-                        <p>Next term begins on February 15, 2026.</p>
-                        <hr>
-                        <h6 class="fw-bold">Parent Meeting</h6>
-                        <p>Parent meeting scheduled on February 22, 2026.</p>
+                        @if($recentAnnouncements->count() > 0)
+                            @foreach($recentAnnouncements as $announcement)
+                                <div class="announcement-item mb-3 {{ !$loop->last ? 'border-bottom pb-3' : '' }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="fw-bold mb-1">{{ Str::limit($announcement->title, 30) }}</h6>
+                                        <span class="badge {{ $announcement->getPriorityBadgeClass() }} badge-sm">
+                                            {{ ucfirst($announcement->priority) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">{{ Str::limit($announcement->content, 80) }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge {{ $announcement->getTypeBadgeClass() }} badge-sm">
+                                            {{ ucfirst($announcement->type) }}
+                                        </span>
+                                        <small class="text-muted">{{ $announcement->created_at->diffForHumans() }}</small>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="text-center py-3">
+                                <i class="fas fa-bullhorn fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No announcements yet</p>
+                                <a href="{{ route('announcements.create') }}" class="btn btn-sm btn-primary mt-2">
+                                    Create First Announcement
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
