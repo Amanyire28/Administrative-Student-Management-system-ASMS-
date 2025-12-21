@@ -7,6 +7,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -67,5 +68,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
     Route::resource('announcements', AnnouncementController::class);
     Route::patch('announcements/{announcement}/toggle', [AnnouncementController::class, 'toggle'])
          ->name('announcements.toggle');
+    
+    // Report Management Routes
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('reports/{report}/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+    Route::get('api/students-by-class', [ReportController::class, 'getStudentsByClass'])->name('api.students-by-class');
     
 });

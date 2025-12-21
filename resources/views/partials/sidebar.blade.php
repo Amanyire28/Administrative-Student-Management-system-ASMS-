@@ -54,6 +54,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                    <i class="fas fa-file-alt me-2"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
                     <i class="fas fa-chalkboard-teacher me-2"></i>
                     <span>Teachers</span>
