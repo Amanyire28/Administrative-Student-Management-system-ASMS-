@@ -98,11 +98,38 @@
         }
         
         /* Enhanced Sidebar Styling */
+        .layout-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
         .sidebar {
             width: 280px !important;
-            min-height: 100vh !important;
+            height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Navbar should be fixed height */
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        /* Content area should be scrollable */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         .sidebar-header h5 {
@@ -201,14 +228,20 @@
         
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
+            .layout-container {
+                position: relative !important;
+                height: 100vh !important;
+            }
+            
             .sidebar {
-                width: 100% !important;
-                min-height: auto !important;
+                width: 280px !important;
+                height: 100vh !important;
                 position: fixed !important;
                 top: 0 !important;
-                left: -100% !important;
+                left: -280px !important;
                 z-index: 1060 !important;
                 transition: left 0.3s ease !important;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
             }
             
             .sidebar.show {
@@ -217,6 +250,37 @@
             
             .main-content {
                 width: 100% !important;
+                margin-left: 0 !important;
+                height: 100vh !important;
+            }
+            
+            .sidebar-overlay {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: rgba(0,0,0,0.5) !important;
+                z-index: 1055 !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .sidebar-overlay.show {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar {
+                position: relative !important;
+                left: 0 !important;
+            }
+            
+            .sidebar-overlay {
+                display: none !important;
             }
         }
     </style>
@@ -224,16 +288,22 @@
     @stack('styles')
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="d-flex">
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Sidebar -->
         @include('partials.sidebar')
 
         <!-- Main Content -->
-        <div class="main-content flex-grow-1">
+        <div class="main-content">
             @include('partials.navbar')
 
-            <!-- Page Content -->
-            @yield('content')
+            <!-- Scrollable Page Content -->
+            <div class="content-area">
+                @yield('content')
+            </div>
         </div>
     </div>
 
@@ -242,6 +312,87 @@
     
     <!-- Custom JS -->
     <script src="{{ asset('js/app.js') }}"></script>
+    
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            // Debug: Check if elements exist
+            console.log('Sidebar elements found:', {
+                toggle: !!sidebarToggle,
+                close: !!sidebarClose,
+                sidebar: !!sidebar,
+                overlay: !!overlay
+            });
+            
+            // Toggle sidebar
+            function toggleSidebar() {
+                if (sidebar && overlay) {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                }
+            }
+            
+            // Close sidebar
+            function closeSidebar() {
+                if (sidebar && overlay) {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            // Event listeners
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeSidebar();
+                });
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Close sidebar when clicking on nav links (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeSidebar();
+                }
+            });
+            
+            // Handle escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar && sidebar.classList.contains('show')) {
+                    closeSidebar();
+                }
+            });
+        });
+    </script>
     
     @stack('scripts')
 </body>
