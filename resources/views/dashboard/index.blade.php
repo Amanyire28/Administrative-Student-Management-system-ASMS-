@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center">
                 <div class="welcome-section mb-3 mb-lg-0">
-                    <h2 class="fw-bold mb-1 welcome-title" style="color: #333;">
+                    <h2 class="fw-bold mb-1 welcome-title" style="color: #8B0000;">
                         Welcome back, {{ auth()->user()->name ?? 'System Administrator' }}!
                     </h2>
                     <p class="mb-0 welcome-subtitle" style="color: #666;">
@@ -244,9 +244,9 @@
 
 .welcome-title {
     font-size: 2rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 2px 4px rgba(139, 0, 0, 0.1);
     transition: all 0.3s ease;
-    color: #333 !important;
+    color: #8B0000 !important;
 }
 
 .welcome-subtitle {
@@ -257,7 +257,7 @@
 
 .welcome-section:hover .welcome-title {
     transform: translateY(-2px);
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 4px 8px rgba(139, 0, 0, 0.2);
 }
 
 .welcome-section:hover .welcome-subtitle {
@@ -309,9 +309,9 @@
     }
 }
 
-/* Black text styling */
+/* Welcome title maroon styling */
 .welcome-title {
-    color: #333 !important;
+    color: #8B0000 !important;
 }
 
 .welcome-subtitle {
