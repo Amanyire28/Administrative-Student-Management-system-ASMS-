@@ -7,17 +7,14 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PasswordChangeController;
+use App\Http\Controllers\SystemController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
 Route::get('/', function () {
@@ -29,6 +26,16 @@ Route::get('/dashboard', [HomeController::class, 'index'])
     ->middleware(['auth:sanctum', 'verified'])
     ->name('dashboard');
 
+// Password Change Routes (no permission required)
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/password/change', function () {
+        return view('auth.change-password');
+    })->name('password.change');
+
+    Route::post('/password/change', [PasswordChangeController::class, 'update'])
+        ->name('password.update');
+});
+
 Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
@@ -36,33 +43,200 @@ Route::post('/logout', function () {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
-// Admin Routes
+// Admin Routes - Protected by Permissions
 Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function () {
 
-    // Student Management Routes
-    Route::resource('students', StudentController::class);
+    // ========================================
+    // STUDENT MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:students.view')->group(function () {
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+    });
 
-    // Teacher Management Routes
-    Route::resource('teachers', TeacherController::class);
+    Route::get('students/create', [StudentController::class, 'create'])
+        ->middleware('permission:students.create')
+        ->name('students.create');
 
-    // Class Management Routes
-    Route::resource('classes', ClassController::class);
+    Route::post('students', [StudentController::class, 'store'])
+        ->middleware('permission:students.create')
+        ->name('students.store');
+
+    Route::get('students/{student}', [StudentController::class, 'show'])
+        ->middleware('permission:students.view-detail')
+        ->name('students.show');
+
+    Route::get('students/{student}/edit', [StudentController::class, 'edit'])
+        ->middleware('permission:students.edit')
+        ->name('students.edit');
+
+    Route::put('students/{student}', [StudentController::class, 'update'])
+        ->middleware('permission:students.edit')
+        ->name('students.update');
+
+    Route::delete('students/{student}', [StudentController::class, 'destroy'])
+        ->middleware('permission:students.delete')
+        ->name('students.destroy');
+
+    // ========================================
+    // TEACHER MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:teachers.view')->group(function () {
+        Route::get('teachers', [TeacherController::class, 'index'])->name('teachers.index');
+    });
+
+    Route::get('teachers/create', [TeacherController::class, 'create'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.create');
+
+    Route::post('teachers', [TeacherController::class, 'store'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.store');
+
+    Route::get('teachers/{teacher}', [TeacherController::class, 'show'])
+        ->middleware('permission:teachers.view-detail')
+        ->name('teachers.show');
+
+    Route::get('teachers/{teacher}/edit', [TeacherController::class, 'edit'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.edit');
+
+    Route::put('teachers/{teacher}', [TeacherController::class, 'update'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.update');
+
+    Route::delete('teachers/{teacher}', [TeacherController::class, 'destroy'])
+        ->middleware('permission:teachers.delete')
+        ->name('teachers.destroy');
+
+    // ========================================
+    // CLASS MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:classes.view')->group(function () {
+        Route::get('classes', [ClassController::class, 'index'])->name('classes.index');
+    });
+
+    Route::get('classes/create', [ClassController::class, 'create'])
+        ->middleware('permission:classes.create')
+        ->name('classes.create');
+
+    Route::post('classes', [ClassController::class, 'store'])
+        ->middleware('permission:classes.create')
+        ->name('classes.store');
+
+    Route::get('classes/{class}', [ClassController::class, 'show'])
+        ->middleware('permission:classes.view-detail')
+        ->name('classes.show');
+
+    Route::get('classes/{class}/edit', [ClassController::class, 'edit'])
+        ->middleware('permission:classes.edit')
+        ->name('classes.edit');
+
+    Route::put('classes/{class}', [ClassController::class, 'update'])
+        ->middleware('permission:classes.edit')
+        ->name('classes.update');
+
+    Route::delete('classes/{class}', [ClassController::class, 'destroy'])
+        ->middleware('permission:classes.delete')
+        ->name('classes.destroy');
+
     Route::post('classes/{class}/assign-subjects', [ClassController::class, 'assignSubjects'])
-         ->name('classes.assign-subjects');
+        ->middleware('permission:classes.assign-subjects')
+        ->name('classes.assign-subjects');
 
-    // Subject Management Routes
-    Route::resource('subjects', SubjectController::class);
+    // ========================================
+    // SUBJECT MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:subjects.view')->group(function () {
+        Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    });
 
-    // Marks Management Routes
-    Route::resource('marks', MarkController::class);
-    Route::get('marks-entry', [MarkController::class, 'create'])->name('marks.entry.form');
-    Route::post('marks-entry', [MarkController::class, 'entry'])->name('marks.entry');
-    Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])->name('marks.store.multiple');
+    Route::get('subjects/create', [SubjectController::class, 'create'])
+        ->middleware('permission:subjects.create')
+        ->name('subjects.create');
 
-    // Report Card Routes
-    Route::get('report-card/form', [ReportController::class, 'form'])->name('report.card.form');
-    Route::post('report-card/generate', [ReportController::class, 'generate'])->name('report.card.generate');
-    Route::get('report-card/{student}', [ReportController::class, 'show'])->name('report.card');
-    Route::get('report-card/{student}/download', [ReportController::class, 'download'])->name('report.card.download');
+    Route::post('subjects', [SubjectController::class, 'store'])
+        ->middleware('permission:subjects.create')
+        ->name('subjects.store');
+
+    Route::get('subjects/{subject}', [SubjectController::class, 'show'])
+        ->middleware('permission:subjects.view-detail')
+        ->name('subjects.show');
+
+    Route::get('subjects/{subject}/edit', [SubjectController::class, 'edit'])
+        ->middleware('permission:subjects.edit')
+        ->name('subjects.edit');
+
+    Route::put('subjects/{subject}', [SubjectController::class, 'update'])
+        ->middleware('permission:subjects.edit')
+        ->name('subjects.update');
+
+    Route::delete('subjects/{subject}', [SubjectController::class, 'destroy'])
+        ->middleware('permission:subjects.delete')
+        ->name('subjects.destroy');
+
+    // ========================================
+    // MARKS MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:marks.view')->group(function () {
+        Route::get('marks', [MarkController::class, 'index'])->name('marks.index');
+    });
+
+    Route::get('marks-entry', [MarkController::class, 'create'])
+        ->middleware('permission:marks.entry')
+        ->name('marks.entry.form');
+
+    Route::post('marks-entry', [MarkController::class, 'entry'])
+        ->middleware('permission:marks.entry')
+        ->name('marks.entry');
+
+    Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])
+        ->middleware('permission:marks.entry')
+        ->name('marks.store.multiple');
+
+    Route::get('marks/{mark}/edit', [MarkController::class, 'edit'])
+        ->middleware('permission:marks.edit')
+        ->name('marks.edit');
+
+    Route::put('marks/{mark}', [MarkController::class, 'update'])
+        ->middleware('permission:marks.edit')
+        ->name('marks.update');
+
+    Route::delete('marks/{mark}', [MarkController::class, 'destroy'])
+        ->middleware('permission:marks.delete')
+        ->name('marks.destroy');
+
+    // ========================================
+    // REPORT CARD - Protected
+    // ========================================
+    Route::get('report-card/form', [ReportController::class, 'form'])
+        ->middleware('permission:reports.view')
+        ->name('report.card.form');
+
+    Route::post('report-card/generate', [ReportController::class, 'generate'])
+        ->middleware('permission:reports.generate')
+        ->name('report.card.generate');
+
+    Route::get('report-card/{student}', [ReportController::class, 'show'])
+        ->middleware('permission:reports.view')
+        ->name('report.card');
+
+    Route::get('report-card/{student}/download', [ReportController::class, 'download'])
+        ->middleware('permission:reports.export')
+        ->name('report.card.download');
+
+
+            // ========================================
+    // SYSTEM MANAGEMENT - Protected
+    // ========================================
+    Route::middleware('permission:system.users')->group(function () {
+        Route::get('system', [SystemController::class, 'index'])->name('system.index');
+        Route::get('system/users', [SystemController::class, 'users'])->name('system.users');
+        Route::get('system/users/{user}/permissions', [SystemController::class, 'editUserPermissions'])->name('system.user-permissions');
+        Route::post('system/users/{user}/permissions', [SystemController::class, 'updateUserPermissions'])->name('system.update-user-permissions');
+    });
+
+    Route::middleware('permission:system.roles')->group(function () {
+        Route::get('system/roles', [SystemController::class, 'roles'])->name('system.roles');
+    });
 
 });

@@ -149,7 +149,7 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
-    <!-- Desktop Layout (lg and above) -->
+    <!-- Desktop Layout  -->
     <div class="desktop-layout hidden lg:flex">
         <!-- Sidebar Area -->
         <div class="sidebar-area">
@@ -247,7 +247,7 @@
         </div>
     </div>
 
-    <!-- Mobile Layout (below lg) -->
+    <!-- Mobile Layout  -->
     <div class="lg:hidden">
         @include('partials.mobile-nav')
         @include('partials.mobile-sidebar')
@@ -332,7 +332,8 @@
                     students: false,
                     teachers: false,
                     marks: false,
-                    reports: false
+                    reports: false,
+                      system: false
                 },
                 sidebarCollapsed: false,
                 currentPath: window.location.pathname,
@@ -385,6 +386,7 @@
                         else if (path.startsWith('/admin/teachers')) this.dropdowns.teachers = true;
                         else if (path.startsWith('/admin/marks')) this.dropdowns.marks = true;
                         else if (path.startsWith('/admin/report-card')) this.dropdowns.reports = true;
+                         else if (path.startsWith('/admin/system')) this.dropdowns.system = true;
                     }
                 },
 
@@ -551,12 +553,12 @@
         };
 
 
-        // Add this to your App Initialization & Helpers script section
+
 window.toggleSidebar = function() {
-    // Method 1: Dispatch the event that Alpine.js is listening for
+
     document.dispatchEvent(new CustomEvent('toggle-sidebar'));
 
-    // Method 2: Directly access the Alpine.js component
+
     const sidebarEl = document.querySelector('[x-data*="sidebarData"]');
     if (sidebarEl && sidebarEl.__x) {
         sidebarEl.__x.$data.toggleSidebar();

@@ -16,7 +16,7 @@
 
     <!-- Navigation Menu (Expanded Mode) -->
     <nav class="p-4 space-y-1 flex-1 sidebar-content" x-show="!sidebarCollapsed" x-transition>
-        <!-- Dashboard -->
+        <!-- Dashboard (Everyone can see) -->
         <a href="/dashboard"
            @click="handleLinkClick()"
            :class="{
@@ -28,7 +28,8 @@
             <span class="font-medium">Dashboard</span>
         </a>
 
-        <!-- Students Dropdown -->
+        <!-- Students Dropdown (Only if has permission) -->
+        @can('students.view')
         <div class="relative">
             <button @click="toggleDropdown('students', $event)"
                 :class="{
@@ -53,6 +54,8 @@
                  x-transition:leave-end="opacity-0 scale-95"
                  style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('students.view')
                 <a href="/admin/students"
                    @click="handleLinkClick()"
                    :class="{
@@ -63,6 +66,9 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>All Students</span>
                 </a>
+                @endcan
+
+                @can('students.create')
                 <a href="/admin/students/create"
                    @click="handleLinkClick()"
                    :class="{
@@ -73,10 +79,13 @@
                     <i class="fas fa-user-plus w-4 text-center"></i>
                     <span>Add New</span>
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
 
-        <!-- Teachers Dropdown -->
+        <!-- Teachers Dropdown (Only if has permission) -->
+        @can('teachers.view')
         <div class="relative">
             <button @click="toggleDropdown('teachers', $event)"
                 :class="{
@@ -94,6 +103,8 @@
 
             <div x-show="dropdowns.teachers" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('teachers.view')
                 <a href="/admin/teachers"
                    @click="handleLinkClick()"
                    :class="{
@@ -104,6 +115,9 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>All Teachers</span>
                 </a>
+                @endcan
+
+                @can('teachers.create')
                 <a href="/admin/teachers/create"
                    @click="handleLinkClick()"
                    :class="{
@@ -114,10 +128,13 @@
                     <i class="fas fa-user-plus w-4 text-center"></i>
                     <span>Add New</span>
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
 
-        <!-- Classes -->
+        <!-- Classes (Only if has permission) -->
+        @can('classes.view')
         <a href="/admin/classes"
            @click="handleLinkClick()"
            :class="{
@@ -128,8 +145,10 @@
             <i class="fas fa-chalkboard w-5 text-center"></i>
             <span class="font-medium">Classes</span>
         </a>
+        @endcan
 
-        <!-- Subjects -->
+        <!-- Subjects (Only if has permission) -->
+        @can('subjects.view')
         <a href="/admin/subjects"
            @click="handleLinkClick()"
            :class="{
@@ -140,8 +159,10 @@
             <i class="fas fa-book w-5 text-center"></i>
             <span class="font-medium">Subjects</span>
         </a>
+        @endcan
 
-        <!-- Marks Dropdown -->
+        <!-- Marks Dropdown (Only if has permission) -->
+        @canany(['marks.view', 'marks.entry'])
         <div class="relative">
             <button @click="toggleDropdown('marks', $event)"
                 :class="{
@@ -159,6 +180,8 @@
 
             <div x-show="dropdowns.marks" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('marks.entry')
                 <a href="/admin/marks-entry"
                    @click="handleLinkClick()"
                    :class="{
@@ -169,6 +192,9 @@
                     <i class="fas fa-pen w-4 text-center"></i>
                     <span>Enter Marks</span>
                 </a>
+                @endcan
+
+                @can('marks.view')
                 <a href="/admin/marks"
                    @click="handleLinkClick()"
                    :class="{
@@ -179,10 +205,13 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>View Marks</span>
                 </a>
+                @endcan
             </div>
         </div>
+        @endcanany
 
-        <!-- Reports Dropdown -->
+        <!-- Reports Dropdown (Only if has permission) -->
+        @can('reports.view')
         <div class="relative">
             <button @click="toggleDropdown('reports', $event)"
                 :class="{
@@ -200,6 +229,8 @@
 
             <div x-show="dropdowns.reports" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('reports.view')
                 <a href="/admin/report-card/form"
                    @click="handleLinkClick()"
                    :class="{
@@ -210,25 +241,28 @@
                     <i class="fas fa-graduation-cap w-4 text-center"></i>
                     <span>Report Cards</span>
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
 
-        <!-- Settings -->
-        <a href="/admin/settings"
-           @click="handleLinkClick()"
-           :class="{
-               'bg-white !text-maroon font-semibold': isActive('/admin/settings'),
-               'text-white/90 hover:bg-white/20': !isActive('/admin/settings')
-           }"
-           class="nav-link flex items-center space-x-3 p-3 rounded-lg transition-all duration-200">
+       @canany(['system.users', 'system.roles'])
+        <a href="/admin/system"
+        @click="handleLinkClick()"
+        :class="{
+            'bg-white !text-maroon font-semibold': isActive('/admin/system'),
+            'text-white/90 hover:bg-white/20': !isActive('/admin/system')
+        }"
+        class="nav-link flex items-center space-x-3 p-3 rounded-lg transition-all duration-200">
             <i class="fas fa-cog w-5 text-center"></i>
             <span class="font-medium">Settings</span>
         </a>
+        @endcanany
     </nav>
 
-    <!-- Icons Only Menu (Collapsed Mode) - WITHOUT DROPDOWNS -->
+    <!-- Icons Only Menu (Collapsed Mode) - WITH PERMISSIONS -->
     <nav class="p-2 space-y-1 flex-1 sidebar-icons" x-show="sidebarCollapsed" x-transition style="display: none;">
-        <!-- Dashboard Icon -->
+        <!-- Dashboard Icon (Everyone) -->
         <a href="/dashboard"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isExactActive('/dashboard')}"
@@ -237,7 +271,8 @@
             <span class="sidebar-tooltip">Dashboard</span>
         </a>
 
-        <!-- Students Icon - DIRECT LINK to index -->
+        <!-- Students Icon -->
+        @can('students.view')
         <a href="/admin/students"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/students')}"
@@ -245,8 +280,10 @@
             <i class="fas fa-users text-xl"></i>
             <span class="sidebar-tooltip">Students</span>
         </a>
+        @endcan
 
-        <!-- Teachers Icon - DIRECT LINK to index -->
+        <!-- Teachers Icon -->
+        @can('teachers.view')
         <a href="/admin/teachers"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/teachers')}"
@@ -254,8 +291,10 @@
             <i class="fas fa-chalkboard-teacher text-xl"></i>
             <span class="sidebar-tooltip">Teachers</span>
         </a>
+        @endcan
 
         <!-- Classes Icon -->
+        @can('classes.view')
         <a href="/admin/classes"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/classes')}"
@@ -263,8 +302,10 @@
             <i class="fas fa-chalkboard text-xl"></i>
             <span class="sidebar-tooltip">Classes</span>
         </a>
+        @endcan
 
         <!-- Subjects Icon -->
+        @can('subjects.view')
         <a href="/admin/subjects"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/subjects')}"
@@ -272,8 +313,10 @@
             <i class="fas fa-book text-xl"></i>
             <span class="sidebar-tooltip">Subjects</span>
         </a>
+        @endcan
 
-        <!-- Marks Icon - DIRECT LINK to entry page -->
+        <!-- Marks Icon -->
+        @can('marks.entry')
         <a href="/admin/marks-entry"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/marks-entry')}"
@@ -281,8 +324,10 @@
             <i class="fas fa-edit text-xl"></i>
             <span class="sidebar-tooltip">Marks</span>
         </a>
+        @endcan
 
-        <!-- Reports Icon - DIRECT LINK to form page -->
+        <!-- Reports Icon -->
+        @can('reports.view')
         <a href="/admin/report-card/form"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/report-card/form')}"
@@ -290,18 +335,21 @@
             <i class="fas fa-file-alt text-xl"></i>
             <span class="sidebar-tooltip">Reports</span>
         </a>
+        @endcan
 
         <!-- Settings Icon -->
-        <a href="/admin/settings"
-           @click="handleLinkClick()"
-           :class="{'bg-white/30': isActive('/admin/settings')}"
-           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
-            <i class="fas fa-cog text-xl"></i>
-            <span class="sidebar-tooltip">Settings</span>
-        </a>
+        @can(['system.users', 'system.roles'])
+<a href="/admin/system"
+   @click="handleLinkClick()"
+   :class="{'bg-white/30': isActive('/admin/system')}"
+   class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+    <i class="fas fa-cog text-xl"></i>
+    <span class="sidebar-tooltip">Settings</span>
+</a>
+@endcan
     </nav>
 
-    <!-- Logout Button -->
+    <!-- Logout Button (Everyone) -->
     <div class="border-t border-white/10">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
