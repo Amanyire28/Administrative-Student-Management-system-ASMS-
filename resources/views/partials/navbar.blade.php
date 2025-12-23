@@ -151,7 +151,7 @@
                     </div>
                 </div>
 
-                    <!-- Quick Add -->
+                <!-- Quick Add -->
                     @canany(['students.create', 'teachers.create', 'marks.entry', 'classes.create'])
                     <div class="relative hidden md:block" x-data="{ open: false }">
                         <button @click="open = !open"

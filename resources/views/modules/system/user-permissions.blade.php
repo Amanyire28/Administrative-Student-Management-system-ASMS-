@@ -107,7 +107,7 @@
 </div>
 @endsection
 
-@push('scripts')
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Add some interactivity
@@ -122,4 +122,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('permissionsForm');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const roles = formData.getAll('roles[]');
+        const permissions = formData.getAll('permissions[]');
+
+        console.log('Roles being sent:', roles);
+        console.log('Permissions being sent:', permissions);
+
+        // Continue with your AJAX submission...
+    });
+});
+</script>
+
