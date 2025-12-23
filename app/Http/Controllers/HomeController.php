@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\ClassModel;
+use App\Models\Subject;
 
 class HomeController extends Controller
 {
@@ -21,9 +25,25 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('dashboard.index');
+        // Get counts for dashboard stats
+        $stats = [
+            'students' => Student::count(),
+            'teachers' => Teacher::count(),
+            'classes' => ClassModel::count(),
+            'subjects' => Subject::count(),
+        ];
+
+        // For HTMX requests - return ONLY the inner content (no wrapper)
+        if ($request->header('HX-Request')) {
+            return response()
+                ->view('dashboard.partials.content', compact('stats'))
+                ->header('HX-Title', 'Dashboard - ' . config('app.name'));
+        }
+
+        // For regular requests - return full page with layout
+        return view('dashboard.index', compact('stats'));
     }
 
     /**
