@@ -84,7 +84,6 @@
                             <th class="px-6 py-3">Class</th>
                             <th class="px-6 py-3">Stream</th>
                             <th class="px-6 py-3">Class Teacher</th>
-                            <th class="px-6 py-3">Capacity</th>
                             <th class="px-6 py-3">Students</th>
                             <th class="px-6 py-3">Classroom</th>
                             <th class="px-6 py-3">Status</th>
@@ -108,9 +107,6 @@
                                 @else
                                     <span class="text-gray-400 italic">Not assigned</span>
                                 @endif
-                            </td>
-                            <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                {{ $class->capacity }}
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">

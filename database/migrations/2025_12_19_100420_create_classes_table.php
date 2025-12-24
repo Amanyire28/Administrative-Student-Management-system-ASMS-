@@ -18,7 +18,6 @@ class CreateClassesTable extends Migration
             $table->string('name'); // Auto-generated from class_level + stream
             $table->unsignedBigInteger('class_level_id')->nullable();
             $table->unsignedBigInteger('stream_id')->nullable();
-            $table->integer('capacity')->default(30); // Maximum number of students
             $table->string('classroom')->nullable(); // Room number or location
             $table->unsignedBigInteger('class_teacher_id')->nullable();
             $table->boolean('is_active')->default(true);

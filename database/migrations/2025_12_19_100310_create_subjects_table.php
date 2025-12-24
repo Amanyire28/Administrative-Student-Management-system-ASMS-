@@ -18,7 +18,6 @@ class CreateSubjectsTable extends Migration
             $table->string('name'); // e.g., "Mathematics", "Biology"
             $table->string('code')->unique(); // e.g., "MATH101", "BIO201"
             $table->text('description')->nullable();
-            $table->integer('credit_hours')->default(1);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

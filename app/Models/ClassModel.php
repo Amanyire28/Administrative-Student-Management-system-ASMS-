@@ -15,7 +15,6 @@ class ClassModel extends Model
         'name',
         'class_level_id',
         'stream_id',
-        'capacity',
         'classroom',
         'class_teacher_id',
         'is_active'

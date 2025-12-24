@@ -32,7 +32,7 @@
 
         <!-- Class Details -->
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Class Level -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div class="flex items-center">
@@ -111,21 +111,6 @@
                     </div>
                 </div>
 
-                <!-- Capacity -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-users text-orange-600 dark:text-orange-400 text-xl"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</p>
-                            <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->capacity }} students
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Current Students -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div class="flex items-center">
@@ -170,21 +155,6 @@
                                 @else
                                     <span class="text-red-600 dark:text-red-400">Inactive</span>
                                 @endif
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Available Spots -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-chair text-yellow-600 dark:text-yellow-400 text-xl"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Available Spots</p>
-                            <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->capacity - $class->students->count() }} spots
                             </p>
                         </div>
                     </div>
@@ -373,9 +343,10 @@
                                 @endif
                             </div>
                             <div class="text-right">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $subject->credit_hours }} hrs
-                                </span>
+                                <a href="{{ route('subjects.show', $subject) }}" 
+                                   class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs">
+                                    View Details
+                                </a>
                             </div>
                         </div>
                     </div>

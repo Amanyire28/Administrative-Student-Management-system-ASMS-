@@ -40,7 +40,6 @@ class ClassController extends Controller
         $validated = $request->validate([
             'class_level_id' => 'required|exists:class_levels,id',
             'stream_id' => 'required|exists:streams,id',
-            'capacity' => 'required|integer|min:1|max:100',
             'classroom' => 'nullable|string|max:255',
             'class_teacher_id' => 'nullable|exists:teachers,id'
         ]);
@@ -85,7 +84,6 @@ class ClassController extends Controller
         $validated = $request->validate([
             'class_level_id' => 'required|exists:class_levels,id',
             'stream_id' => 'required|exists:streams,id',
-            'capacity' => 'required|integer|min:1|max:100',
             'classroom' => 'nullable|string|max:255',
             'class_teacher_id' => 'nullable|exists:teachers,id',
             'is_active' => 'boolean'
