@@ -77,20 +77,30 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('class-categories.show', $category) }}" 
+                                       class="text-blue-600 hover:text-blue-800" 
+                                       title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
                                     <a href="{{ route('class-categories.edit', $category) }}" 
-                                       class="text-blue-600 hover:text-blue-900">Edit</a>
+                                       class="text-yellow-600 hover:text-yellow-800" 
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                     
-                                    @if($category->classLevels->count() == 0)
-                                        <form action="{{ route('class-categories.destroy', $category) }}" 
-                                              method="POST" 
-                                              class="inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this category?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-                                        </form>
-                                    @endif
+                                    <form action="{{ route('class-categories.destroy', $category) }}" 
+                                          method="POST" 
+                                          class="inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this category?{{ $category->classLevels->count() > 0 ? ' This will also affect ' . $category->classLevels->count() . ' class level(s).' : '' }}')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="text-red-600 hover:text-red-800" 
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

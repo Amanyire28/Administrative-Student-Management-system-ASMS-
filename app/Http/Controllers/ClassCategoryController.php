@@ -42,6 +42,15 @@ class ClassCategoryController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(ClassCategory $classCategory)
+    {
+        $classCategory->load(['classLevels.classes.students']);
+        return view('modules.class-categories.show', compact('classCategory'));
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(ClassCategory $classCategory)
@@ -72,15 +81,27 @@ class ClassCategoryController extends Controller
      */
     public function destroy(ClassCategory $classCategory)
     {
-        // Check if category has class levels
-        if ($classCategory->classLevels()->count() > 0) {
-            return redirect()->route('class-categories.index')
-                            ->with('error', 'Cannot delete category with existing class levels.');
+        $classLevelsCount = $classCategory->classLevels()->count();
+        
+        if ($classLevelsCount > 0) {
+            // Check if any class levels have classes with students
+            $hasStudents = $classCategory->classLevels()
+                ->whereHas('classes.students')
+                ->exists();
+                
+            if ($hasStudents) {
+                return redirect()->route('class-categories.index')
+                                ->with('error', 'Cannot delete category. Some class levels have classes with enrolled students.');
+            }
         }
 
         $classCategory->delete();
 
+        $message = $classLevelsCount > 0 
+            ? "Class category deleted successfully. {$classLevelsCount} class level(s) were also removed."
+            : 'Class category deleted successfully.';
+
         return redirect()->route('class-categories.index')
-                        ->with('success', 'Class category deleted successfully.');
+                        ->with('success', $message);
     }
 }
