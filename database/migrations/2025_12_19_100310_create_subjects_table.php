@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateSubjectsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('subjects', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // e.g., "Mathematics", "Biology"
+            $table->string('code')->unique(); // e.g., "MATH101", "BIO201"
+            $table->text('description')->nullable();
+            $table->integer('credit_hours')->default(1);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('subjects');
+    }
+}
