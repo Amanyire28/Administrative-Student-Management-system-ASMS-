@@ -15,8 +15,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        // Create Admin User
-<<<<<<< HEAD
+
         User::create([
             'name' => 'System Administrator',
             'email' => 'admin@asms.com',
@@ -55,7 +54,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'is_active' => true,
         ]);
-=======
+
         User::updateOrCreate(
             ['email' => 'admin@asms.com'],
             [
@@ -102,6 +101,6 @@ class UserSeeder extends Seeder
                 'is_active' => true,
             ]
         );
->>>>>>> julius2
+
     }
 }

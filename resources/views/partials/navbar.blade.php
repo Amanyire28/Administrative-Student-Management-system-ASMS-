@@ -13,17 +13,15 @@
             <!-- Brand & Page Title -->
             <div class="flex items-center space-x-4">
                 <!-- Logo -->
-<<<<<<< HEAD
+
                 <div class="hidden lg:flex items-center justify-center w-12 h-12 bg-gradient-to-br from-maroon to-maroon-dark rounded-full shadow-lg">
                     <img
                 src="{{ asset('storage/' . school_setting('school_logo')) }}"
                 alt="{{ school_setting('school_name') }}"
                 class="w-full h-full rounded-full"
             >
-=======
-                <div class="hidden lg:flex items-center justify-center w-12 h-12 bg-gradient-to-br from-maroon to-maroon-dark rounded-2xl shadow-lg">
-                    <span class="text-white font-bold text-lg tracking-tight">AS</span>
->>>>>>> julius2
+
+
                 </div>
 
                 <!-- Page Information -->
@@ -161,7 +159,7 @@
                 </div>
 
                 <!-- Quick Add -->
-<<<<<<< HEAD
+
                     @canany(['students.create', 'teachers.create', 'marks.entry', 'classes.create'])
                     <div class="relative hidden md:block" x-data="{ open: false }">
                         <button @click="open = !open"
@@ -240,77 +238,7 @@
                         </div>
                     </div>
                     @endcanany
-=======
-                <div class="relative hidden md:block" x-data="{ open: false }">
-                    <button @click="open = !open"
-                        class="p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-maroon hover:to-maroon-dark dark:hover:from-gray-600 rounded-2xl transition-all duration-300 group shadow-sm">
-                        <i class="fas fa-plus text-gray-700 dark:text-gray-300 text-lg group-hover:text-white group-hover:rotate-90 transition-all duration-300"></i>
-                    </button>
 
-                    <!-- Quick Add Dropdown -->
-                    <div x-show="open"
-                        @click.away="open = false"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 -translate-y-2"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 -translate-y-2"
-                        class="absolute right-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-3 z-50 overflow-hidden"
-                        style="display: none;">
-                        <div class="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700">
-                            <h3 class="font-bold text-gray-900 dark:text-white text-sm">Quick Actions</h3>
-                        </div>
-
-                        <div class="py-2">
-                            <a href="/admin/students/create"
-                               class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-user-plus text-blue-600 dark:text-blue-400"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">New Student</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Add student record</p>
-                                </div>
-                            </a>
-
-                            <a href="/admin/teachers/create"
-                               class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-chalkboard-teacher text-green-600 dark:text-green-400"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">New Teacher</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Add teacher record</p>
-                                </div>
-                            </a>
-
-                            <!-- Additional Quick Actions -->
-                            <a href="/admin/marks-entry"
-                               class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-edit text-purple-600 dark:text-purple-400"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">Enter Marks</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Record student marks</p>
-                                </div>
-                            </a>
-
-                            <a href="/admin/classes/create"
-                               class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
-                                    <i class="fas fa-chalkboard text-orange-600 dark:text-orange-400"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900 dark:text-white text-sm">New Class</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Create class section</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
->>>>>>> julius2
             </div>
 
             <!-- User Profile -->

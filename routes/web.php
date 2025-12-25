@@ -4,35 +4,26 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ClassController;
-<<<<<<< HEAD
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\MarkController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\PasswordChangeController;
-use App\Http\Controllers\SystemController;
-use App\Http\Controllers\SchoolSettingController; // ← ADD THIS LINE
-=======
 use App\Http\Controllers\ClassLevelController;
 use App\Http\Controllers\ClassCategoryController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\ReportController;
->>>>>>> julius2
+use App\Http\Controllers\PasswordChangeController;
+use App\Http\Controllers\SystemController;
+use App\Http\Controllers\SchoolSettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
 |
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
 |
->>>>>>> julius2
 */
 
 Route::get('/', function () {
@@ -44,7 +35,6 @@ Route::get('/dashboard', [HomeController::class, 'index'])
     ->middleware(['auth:sanctum', 'verified'])
     ->name('dashboard');
 
-<<<<<<< HEAD
 // Password Change Routes (no permission required)
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/password/change', function () {
@@ -55,8 +45,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->name('password.update');
 });
 
-=======
->>>>>>> julius2
 Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
@@ -64,7 +52,6 @@ Route::post('/logout', function () {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
-<<<<<<< HEAD
 // Admin Routes - Protected by Permissions
 Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function () {
 
@@ -129,6 +116,99 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
     Route::delete('teachers/{teacher}', [TeacherController::class, 'destroy'])
         ->middleware('permission:teachers.delete')
         ->name('teachers.destroy');
+
+    // ========================================
+    // CLASS CATEGORY MANAGEMENT (from julius2)
+    // ========================================
+    Route::middleware('permission:classes.view')->group(function () {
+        Route::get('class-categories', [ClassCategoryController::class, 'index'])->name('class-categories.index');
+    });
+
+    Route::get('class-categories/create', [ClassCategoryController::class, 'create'])
+        ->middleware('permission:classes.create')
+        ->name('class-categories.create');
+
+    Route::post('class-categories', [ClassCategoryController::class, 'store'])
+        ->middleware('permission:classes.create')
+        ->name('class-categories.store');
+
+    Route::get('class-categories/{class_category}', [ClassCategoryController::class, 'show'])
+        ->middleware('permission:classes.view-detail')
+        ->name('class-categories.show');
+
+    Route::get('class-categories/{class_category}/edit', [ClassCategoryController::class, 'edit'])
+        ->middleware('permission:classes.edit')
+        ->name('class-categories.edit');
+
+    Route::put('class-categories/{class_category}', [ClassCategoryController::class, 'update'])
+        ->middleware('permission:classes.edit')
+        ->name('class-categories.update');
+
+    Route::delete('class-categories/{class_category}', [ClassCategoryController::class, 'destroy'])
+        ->middleware('permission:classes.delete')
+        ->name('class-categories.destroy');
+
+    // ========================================
+    // CLASS LEVEL MANAGEMENT (from julius2)
+    // ========================================
+    Route::middleware('permission:classes.view')->group(function () {
+        Route::get('class-levels', [ClassLevelController::class, 'index'])->name('class-levels.index');
+    });
+
+    Route::get('class-levels/create', [ClassLevelController::class, 'create'])
+        ->middleware('permission:classes.create')
+        ->name('class-levels.create');
+
+    Route::post('class-levels', [ClassLevelController::class, 'store'])
+        ->middleware('permission:classes.create')
+        ->name('class-levels.store');
+
+    Route::get('class-levels/{class_level}', [ClassLevelController::class, 'show'])
+        ->middleware('permission:classes.view-detail')
+        ->name('class-levels.show');
+
+    Route::get('class-levels/{class_level}/edit', [ClassLevelController::class, 'edit'])
+        ->middleware('permission:classes.edit')
+        ->name('class-levels.edit');
+
+    Route::put('class-levels/{class_level}', [ClassLevelController::class, 'update'])
+        ->middleware('permission:classes.edit')
+        ->name('class-levels.update');
+
+    Route::delete('class-levels/{class_level}', [ClassLevelController::class, 'destroy'])
+        ->middleware('permission:classes.delete')
+        ->name('class-levels.destroy');
+
+    // ========================================
+    // STREAM MANAGEMENT (from julius2)
+    // ========================================
+    Route::middleware('permission:classes.view')->group(function () {
+        Route::get('streams', [StreamController::class, 'index'])->name('streams.index');
+    });
+
+    Route::get('streams/create', [StreamController::class, 'create'])
+        ->middleware('permission:classes.create')
+        ->name('streams.create');
+
+    Route::post('streams', [StreamController::class, 'store'])
+        ->middleware('permission:classes.create')
+        ->name('streams.store');
+
+    Route::get('streams/{stream}', [StreamController::class, 'show'])
+        ->middleware('permission:classes.view-detail')
+        ->name('streams.show');
+
+    Route::get('streams/{stream}/edit', [StreamController::class, 'edit'])
+        ->middleware('permission:classes.edit')
+        ->name('streams.edit');
+
+    Route::put('streams/{stream}', [StreamController::class, 'update'])
+        ->middleware('permission:classes.edit')
+        ->name('streams.update');
+
+    Route::delete('streams/{stream}', [StreamController::class, 'destroy'])
+        ->middleware('permission:classes.delete')
+        ->name('streams.destroy');
 
     // ========================================
     // CLASS MANAGEMENT - Protected
@@ -261,7 +341,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
     });
 
     // ========================================
-    // SCHOOL SETTINGS - Protected (ADD THIS SECTION)
+    // SCHOOL SETTINGS - Protected (from HEAD)
     // ========================================
     Route::middleware('permission:system.settings')->group(function () {
         // Main settings page
@@ -291,44 +371,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         Route::delete('settings/school-profile/delete-signature', [SchoolSettingController::class, 'deleteSignature'])
             ->name('settings.delete-signature');
     });
-=======
-// Admin Routes
-Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function () {
-
-    // Student Management Routes
-    Route::resource('students', StudentController::class);
-
-    // Teacher Management Routes
-    Route::resource('teachers', TeacherController::class);
-
-    // Class Category Management Routes
-    Route::resource('class-categories', ClassCategoryController::class);
-
-    // Class Level Management Routes
-    Route::resource('class-levels', ClassLevelController::class);
-
-    // Stream Management Routes
-    Route::resource('streams', StreamController::class);
-
-    // Class Management Routes
-    Route::resource('classes', ClassController::class);
-    Route::post('classes/{class}/assign-subjects', [ClassController::class, 'assignSubjects'])
-         ->name('classes.assign-subjects');
-
-    // Subject Management Routes
-    Route::resource('subjects', SubjectController::class);
-
-    // Marks Management Routes
-    Route::resource('marks', MarkController::class);
-    Route::get('marks-entry', [MarkController::class, 'create'])->name('marks.entry.form');
-    Route::post('marks-entry', [MarkController::class, 'entry'])->name('marks.entry');
-    Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])->name('marks.store.multiple');
-
-    // Report Card Routes
-    Route::get('report-card/form', [ReportController::class, 'form'])->name('report.card.form');
-    Route::post('report-card/generate', [ReportController::class, 'generate'])->name('report.card.generate');
-    Route::get('report-card/{student}', [ReportController::class, 'show'])->name('report.card');
-    Route::get('report-card/{student}/download', [ReportController::class, 'download'])->name('report.card.download');
->>>>>>> julius2
 
 });

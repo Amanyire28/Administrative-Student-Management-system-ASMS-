@@ -39,13 +39,11 @@ class SPARouter {
                 href.startsWith('tel:') ||
                 link.hasAttribute('download') ||
                 link.getAttribute('target') === '_blank' ||
-<<<<<<< HEAD
+
                 link.closest('form')  ||
                 link.hasAttribute('data-spa') && link.getAttribute('data-spa') ==='false')
                  {
-=======
-                link.closest('form')) {
->>>>>>> julius2
+
                 return;
             }
 
@@ -168,10 +166,7 @@ class SPARouter {
         }
     }
 
-    /**
-     * Fetch content from Laravel backend
-     */
-<<<<<<< HEAD
+
     /**
  * Fetch content from Laravel backend
  */
@@ -272,82 +267,7 @@ async render(html, path) {
         detail: { path, content }
     }));
 }
-=======
-    async fetchContent(path, method = 'GET', data = null) {
-        const url = this.baseUrl + path;
-        const options = {
-            method,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': this.csrfToken,
-                'Accept': 'text/html, application/json',
-                'X-SPA-Request': 'true'
-            },
-            credentials: 'same-origin'
-        };
 
-        if (data) {
-            if (data instanceof FormData) {
-                options.body = data;
-            } else {
-                options.headers['Content-Type'] = 'application/json';
-                options.body = JSON.stringify(data);
-            }
-        }
-
-        return fetch(url, options);
-    }
-
-    /**
-     * Render HTML content into the page
-     */
-    async render(html, path) {
-        let content = html;
-
-        // If response is a full HTML document, extract the content
-        if (html.includes('<!DOCTYPE html>')) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const pageContent = doc.getElementById('page-content');
-
-            if (pageContent) {
-                content = pageContent.innerHTML;
-            } else {
-                throw new Error('Could not find #page-content in response');
-            }
-        }
-
-        // Update both desktop and mobile content areas
-        const desktopTarget = document.querySelector(this.contentTarget);
-        const mobileTarget = document.querySelector(this.mobileContentTarget);
-
-        if (desktopTarget) {
-            desktopTarget.innerHTML = content;
-
-            // Reinitialize Alpine.js if available
-            if (window.Alpine) {
-                setTimeout(() => Alpine.initTree(desktopTarget), 10);
-            }
-        }
-
-        if (mobileTarget) {
-            mobileTarget.innerHTML = content;
-
-            if (window.Alpine) {
-                setTimeout(() => Alpine.initTree(mobileTarget), 10);
-            }
-        }
-
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Dispatch render event
-        window.dispatchEvent(new CustomEvent('spa:rendered', {
-            detail: { path, content }
-        }));
-    }
-
->>>>>>> julius2
     /**
      * Submit form via AJAX
      */

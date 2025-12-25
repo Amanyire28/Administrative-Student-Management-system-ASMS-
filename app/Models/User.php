@@ -9,10 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-<<<<<<< HEAD
 use Spatie\Permission\Traits\HasRoles;
-=======
->>>>>>> julius2
 
 class User extends Authenticatable
 {
@@ -21,10 +18,7 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
-<<<<<<< HEAD
     use HasRoles;
-=======
->>>>>>> julius2
 
     /**
      * The attributes that are mass assignable.
@@ -35,15 +29,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role', // Keep for backward compatibility
         'is_active',
-<<<<<<< HEAD
         'staff_id',
         'phone',
         'must_change_password',
         'password_changed_at',
-=======
->>>>>>> julius2
     ];
 
     /**
@@ -66,11 +57,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean',
-<<<<<<< HEAD
         'must_change_password' => 'boolean',
         'password_changed_at' => 'datetime',
-=======
->>>>>>> julius2
     ];
 
     /**
@@ -83,7 +71,6 @@ class User extends Authenticatable
     ];
 
     /**
-<<<<<<< HEAD
      * Generate school email: ksamuel@asms.ac.ug
      */
     public static function generateSchoolEmail(string $name, ?string $staffId = null): string
@@ -180,49 +167,95 @@ class User extends Authenticatable
         return $this->hasRole('Teacher');
     }
 
-
-
-
-
-
-=======
-     * Check if user is an admin.
+    /**
+     * Check if user is a parent (using Spatie)
      */
-    public function isAdmin(): bool
+    public function isParent(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole('Parent');
     }
 
     /**
-     * Check if user is staff.
+     * Check if user is a student (using Spatie)
      */
-    public function isStaff(): bool
+    public function isStudent(): bool
     {
-        return $this->role === 'staff';
+        return $this->hasRole('Student');
     }
 
     /**
-     * Check if user is a teacher.
+     * Get role name for display (accessor)
+     * Note: The Spatie package provides the 'roles' relationship
      */
-    public function isTeacher(): bool
+    public function getRoleNameAttribute(): string
     {
-        return $this->role === 'teacher';
+        return $this->roles->first()?->name ?? 'No Role';
     }
 
     /**
-     * Check if user has a specific role.
+     * Accessor for backward compatibility with 'role' field
+     * This returns the first role name from Spatie roles
      */
-    public function hasRole(string $role): bool
+    public function getRoleAttribute(): string
     {
-        return $this->role === $role;
+        return $this->roles->first()?->name ?? 'user';
     }
 
     /**
-     * Check if user has any of the given roles.
+     * Mutator for backward compatibility with 'role' field
+     * This assigns the role using Spatie package
      */
-    public function hasAnyRole(array $roles): bool
+    public function setRoleAttribute(string $role): void
     {
-        return in_array($this->role, $roles);
+        $this->syncRoles([$role]);
     }
->>>>>>> julius2
+
+
+
+    /**
+     * Boot method to handle role synchronization
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // When creating a user, assign the role from the role attribute
+        static::creating(function ($user) {
+            if (isset($user->attributes['role']) && $user->attributes['role']) {
+                $role = $user->attributes['role'];
+                unset($user->attributes['role']); // Remove from attributes to avoid conflict
+
+                // Store role temporarily to assign after creation
+                $user->roleToAssign = $role;
+            }
+        });
+
+        // After creating a user, assign the role
+        static::created(function ($user) {
+            if (isset($user->roleToAssign)) {
+                $user->assignRole($user->roleToAssign);
+                unset($user->roleToAssign);
+            }
+        });
+
+        // When updating, sync the role if role attribute is present
+        static::updating(function ($user) {
+            if (array_key_exists('role', $user->attributes)) {
+                $role = $user->attributes['role'];
+                unset($user->attributes['role']); // Remove from attributes to avoid direct update
+
+                // Store role temporarily to sync after update
+                $user->roleToSync = $role;
+            }
+        });
+
+        // After updating, sync the role
+        static::updated(function ($user) {
+            if (isset($user->roleToSync)) {
+                $user->syncRoles([$user->roleToSync]);
+                unset($user->roleToSync);
+            }
+        });
+    }
+
 }
