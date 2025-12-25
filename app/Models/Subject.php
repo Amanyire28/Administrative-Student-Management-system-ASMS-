@@ -13,7 +13,10 @@ class Subject extends Model
         'name',
         'code',
         'description',
+<<<<<<< HEAD
         'credit_hours',
+=======
+>>>>>>> julius2
         'is_active'
     ];
 

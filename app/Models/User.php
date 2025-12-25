@@ -9,7 +9,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+<<<<<<< HEAD
 use Spatie\Permission\Traits\HasRoles;
+=======
+>>>>>>> julius2
 
 class User extends Authenticatable
 {
@@ -18,7 +21,10 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+<<<<<<< HEAD
     use HasRoles;
+=======
+>>>>>>> julius2
 
     /**
      * The attributes that are mass assignable.
@@ -31,10 +37,13 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+<<<<<<< HEAD
         'staff_id',
         'phone',
         'must_change_password',
         'password_changed_at',
+=======
+>>>>>>> julius2
     ];
 
     /**
@@ -57,8 +66,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean',
+<<<<<<< HEAD
         'must_change_password' => 'boolean',
         'password_changed_at' => 'datetime',
+=======
+>>>>>>> julius2
     ];
 
     /**
@@ -71,6 +83,7 @@ class User extends Authenticatable
     ];
 
     /**
+<<<<<<< HEAD
      * Generate school email: ksamuel@asms.ac.ug
      */
     public static function generateSchoolEmail(string $name, ?string $staffId = null): string
@@ -172,4 +185,44 @@ class User extends Authenticatable
 
 
 
+=======
+     * Check if user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is staff.
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+
+    /**
+     * Check if user is a teacher.
+     */
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
+    }
+>>>>>>> julius2
 }

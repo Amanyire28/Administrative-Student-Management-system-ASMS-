@@ -4,7 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+<<<<<<< HEAD
     <title>@yield('title', school_setting('school_name') .'Dashboard') </title>
+=======
+    <title>@yield('title', 'Dashboard') - {{ config('app.name', 'ASMS') }}</title>
+>>>>>>> julius2
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +36,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+<<<<<<< HEAD
         /* Keep all your existing styles here */
+=======
+>>>>>>> julius2
         /* Layout styles */
         html, body {
             margin: 0;
@@ -150,7 +157,11 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
+<<<<<<< HEAD
     <!-- Desktop Layout -->
+=======
+    <!-- Desktop Layout (lg and above) -->
+>>>>>>> julius2
     <div class="desktop-layout hidden lg:flex">
         <!-- Sidebar Area -->
         <div class="sidebar-area">
@@ -199,6 +210,27 @@
                     </div>
                 </div>
                 @endif
+<<<<<<< HEAD
+=======
+
+                @if(session('warning'))
+                <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-lg flash-message"
+                     x-data="{ show: true }"
+                     x-show="show"
+                     x-init="setTimeout(() => show = false, 5000)"
+                     x-transition>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400"></i>
+                            <p class="ml-3 text-yellow-700 dark:text-yellow-300">{{ session('warning') }}</p>
+                        </div>
+                        <button @click="show = false" class="text-yellow-500 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                @endif
+>>>>>>> julius2
             </div>
 
             <!-- Loading Indicator -->
@@ -230,7 +262,11 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- Mobile Layout -->
+=======
+    <!-- Mobile Layout (below lg) -->
+>>>>>>> julius2
     <div class="lg:hidden">
         @include('partials.mobile-nav')
         @include('partials.mobile-sidebar')
@@ -307,6 +343,7 @@
     <script src="{{ asset('js/spa-router.js') }}"></script>
 
     <!-- Alpine.js Component Definitions -->
+<<<<<<< HEAD
     <!-- Alpine.js Component Definitions -->
 <script>
      document.addEventListener('alpine:init', () => {
@@ -509,6 +546,150 @@
          }));
      });
 </script>
+=======
+    <script>
+        document.addEventListener('alpine:init', () => {
+            // Sidebar Data Component
+            Alpine.data('sidebarData', () => ({
+                dropdowns: {
+                    students: false,
+                    teachers: false,
+                    classes: false,
+                    marks: false,
+                    reports: false
+                },
+                sidebarCollapsed: false,
+                currentPath: window.location.pathname,
+
+                init() {
+                    // Initialize collapsed state from localStorage
+                    try {
+                        this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                        this.applySidebarState();
+                    } catch (e) {
+                        console.warn('Could not read sidebar state:', e);
+                        this.sidebarCollapsed = false;
+                    }
+
+                    // Set initial dropdown states based on current URL
+                    this.updateDropdownsFromURL(this.currentPath);
+
+                    // Listen for SPA navigation
+                    window.addEventListener('spa:navigated', (e) => {
+                        this.currentPath = e.detail.path || window.location.pathname;
+                        this.updateDropdownsFromURL(this.currentPath);
+                    });
+
+                    // Listen for browser back/forward
+                    window.addEventListener('popstate', () => {
+                        this.currentPath = window.location.pathname;
+                        this.updateDropdownsFromURL(this.currentPath);
+                    });
+
+                    // Listen for sidebar toggle from navbar
+                    document.addEventListener('toggle-sidebar', () => {
+                        this.toggleSidebar();
+                    });
+
+                    // Close dropdowns when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!this.$el.contains(e.target)) {
+                            this.closeAllDropdowns();
+                        }
+                    });
+
+                    console.log('✅ Sidebar Alpine component initialized');
+                },
+
+                updateDropdownsFromURL(path) {
+                    this.closeAllDropdowns();
+
+                    if (!this.sidebarCollapsed) {
+                        if (path.startsWith('/admin/students')) this.dropdowns.students = true;
+                        else if (path.startsWith('/admin/teachers')) this.dropdowns.teachers = true;
+                        else if (path.startsWith('/admin/classes') || path.startsWith('/admin/class-levels') || path.startsWith('/admin/streams')) this.dropdowns.classes = true;
+                        else if (path.startsWith('/admin/marks')) this.dropdowns.marks = true;
+                        else if (path.startsWith('/admin/report-card')) this.dropdowns.reports = true;
+                    }
+                },
+
+                toggleDropdown(name, event) {
+                    if (event) event.stopPropagation();
+
+                    if (this.dropdowns[name]) {
+                        this.dropdowns[name] = false;
+                    } else {
+                        this.closeAllDropdowns();
+                        this.dropdowns[name] = true;
+                    }
+                },
+
+                closeAllDropdowns() {
+                    Object.keys(this.dropdowns).forEach(key => {
+                        this.dropdowns[key] = false;
+                    });
+                },
+
+                handleLinkClick() {
+                    setTimeout(() => this.closeAllDropdowns(), 100);
+                },
+
+                isActive(path) {
+                    if (!path || path === '#') return false;
+                    return this.currentPath === path || this.currentPath.startsWith(path + '/');
+                },
+
+                isExactActive(path) {
+                    return this.currentPath === path;
+                },
+
+                toggleSidebar() {
+                    this.sidebarCollapsed = !this.sidebarCollapsed;
+
+                    try {
+                        localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
+                    } catch (e) {
+                        console.warn('Could not save sidebar state:', e);
+                    }
+
+                    this.applySidebarState();
+
+                    // Close all dropdowns when collapsing
+                    if (this.sidebarCollapsed) {
+                        this.closeAllDropdowns();
+                    } else {
+                        // Reopen appropriate dropdown when expanding
+                        this.updateDropdownsFromURL(this.currentPath);
+                    }
+
+                    console.log('✅ Sidebar:', this.sidebarCollapsed ? 'collapsed' : 'expanded');
+                },
+
+                applySidebarState() {
+                    const sidebar = document.querySelector('.sidebar');
+                    const sidebarArea = document.querySelector('.sidebar-area');
+                    const mainContent = document.querySelector('.main-content-area');
+                    const toggleIcon = document.querySelector('#sidebarToggle i');
+
+                    if (this.sidebarCollapsed) {
+                        sidebar?.classList.add('collapsed');
+                        sidebarArea?.classList.add('collapsed');
+                        mainContent?.classList.add('collapsed');
+                        toggleIcon?.classList.remove('fa-chevron-left');
+                        toggleIcon?.classList.add('fa-chevron-right');
+                    } else {
+                        sidebar?.classList.remove('collapsed');
+                        sidebarArea?.classList.remove('collapsed');
+                        mainContent?.classList.remove('collapsed');
+                        toggleIcon?.classList.remove('fa-chevron-right');
+                        toggleIcon?.classList.add('fa-chevron-left');
+                    }
+                }
+            }));
+        });
+    </script>
+
+>>>>>>> julius2
     <!-- Theme Management -->
     <script>
         // Global theme management
@@ -532,6 +713,10 @@
                 } catch (e) {
                     console.warn('Could not save theme:', e);
                 }
+<<<<<<< HEAD
+=======
+                console.log('✅ Theme:', this.current);
+>>>>>>> julius2
             },
 
             apply() {
@@ -547,6 +732,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ App initialized');
+<<<<<<< HEAD
+=======
+            console.log('📱 User Agent:', navigator.userAgent);
+
+            // Listen for navigation events
+            window.addEventListener('spa:navigated', (e) => {
+                console.log('📍 Navigated to:', e.detail.path);
+            });
+
+            window.addEventListener('spa:rendered', (e) => {
+                console.log('🎨 Content rendered');
+            });
+>>>>>>> julius2
         });
 
         // Global helper functions
@@ -554,6 +752,10 @@
             if (window.router && typeof window.router.showAlert === 'function') {
                 window.router.showAlert(msg, type);
             } else {
+<<<<<<< HEAD
+=======
+                console.warn('Router not available for showAlert');
+>>>>>>> julius2
                 alert(msg);
             }
         };
@@ -562,6 +764,10 @@
             if (window.router && typeof window.router.navigate === 'function') {
                 window.router.navigate(path, opts);
             } else {
+<<<<<<< HEAD
+=======
+                console.warn('Router not available for navigation');
+>>>>>>> julius2
                 window.location.href = path;
             }
         };
@@ -578,6 +784,7 @@
             if (window.appTheme && typeof window.appTheme.toggle === 'function') {
                 window.appTheme.toggle();
             }
+<<<<<<< HEAD
         };
 
         window.toggleSidebar = function() {
@@ -586,6 +793,24 @@
 
         // REMOVE this duplicate function - it's already registered in the <head>
         // window.schoolProfileSettings = function() { ... }
+=======
+
+
+        };
+
+
+        // Add this to your App Initialization & Helpers script section
+window.toggleSidebar = function() {
+    // Method 1: Dispatch the event that Alpine.js is listening for
+    document.dispatchEvent(new CustomEvent('toggle-sidebar'));
+
+    // Method 2: Directly access the Alpine.js component
+    const sidebarEl = document.querySelector('[x-data*="sidebarData"]');
+    if (sidebarEl && sidebarEl.__x) {
+        sidebarEl.__x.$data.toggleSidebar();
+    }
+};
+>>>>>>> julius2
     </script>
 
     @stack('scripts')

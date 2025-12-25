@@ -13,10 +13,17 @@ class ClassModel extends Model
 
     protected $fillable = [
         'name',
+<<<<<<< HEAD
         'level',
         'capacity',
         'classroom',
         'description',
+=======
+        'class_level_id',
+        'stream_id',
+        'classroom',
+        'class_teacher_id',
+>>>>>>> julius2
         'is_active'
     ];
 
@@ -44,6 +51,24 @@ class ClassModel extends Model
                     ->withTimestamps();
     }
 
+<<<<<<< HEAD
+=======
+    public function classTeacher()
+    {
+        return $this->belongsTo(Teacher::class, 'class_teacher_id');
+    }
+
+    public function classLevel()
+    {
+        return $this->belongsTo(ClassLevel::class, 'class_level_id');
+    }
+
+    public function stream()
+    {
+        return $this->belongsTo(Stream::class, 'stream_id');
+    }
+
+>>>>>>> julius2
     public function marks()
     {
         return $this->hasMany(Mark::class, 'class_id');
@@ -54,4 +79,12 @@ class ClassModel extends Model
     {
         return $this->students()->count();
     }
+<<<<<<< HEAD
+=======
+
+    public function getFullNameAttribute()
+    {
+        return $this->classLevel->name . ' ' . $this->stream->name;
+    }
+>>>>>>> julius2
 }

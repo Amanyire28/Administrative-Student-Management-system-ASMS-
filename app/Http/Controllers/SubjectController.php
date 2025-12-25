@@ -12,7 +12,11 @@ class SubjectController extends Controller
      */
     public function index()
     {
+<<<<<<< HEAD
         $subjects = Subject::withCount('classes')->paginate(15);
+=======
+        $subjects = Subject::withCount('classes')->orderBy('name')->paginate(15);
+>>>>>>> julius2
         return view('modules.subjects.index', compact('subjects'));
     }
 
@@ -33,9 +37,18 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:20|unique:subjects',
             'description' => 'nullable|string',
+<<<<<<< HEAD
             'credit_hours' => 'required|integer|min:1|max:10'
         ]);
 
+=======
+            'is_active' => 'required|in:0,1'
+        ]);
+
+        // Convert is_active to boolean
+        $validated['is_active'] = (bool) $validated['is_active'];
+
+>>>>>>> julius2
         Subject::create($validated);
 
         return redirect()->route('subjects.index')
@@ -47,8 +60,21 @@ class SubjectController extends Controller
      */
     public function show(Subject $subject)
     {
+<<<<<<< HEAD
         $subject->load(['classes', 'teachers', 'marks.student']);
         return view('modules.subjects.show', compact('subject'));
+=======
+        $subject->load(['classes']);
+        
+        // Get classes and teachers separately to avoid relationship issues
+        $classes = $subject->classes()->with(['classLevel', 'stream'])->get();
+        $teachers = collect(); // Empty collection for now since we don't have direct subject-teacher relationship
+        $totalStudents = $classes->sum(function($class) {
+            return $class->students()->count();
+        });
+        
+        return view('modules.subjects.show', compact('subject', 'classes', 'teachers', 'totalStudents'));
+>>>>>>> julius2
     }
 
     /**
@@ -68,10 +94,19 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:20|unique:subjects,code,' . $subject->id,
             'description' => 'nullable|string',
+<<<<<<< HEAD
             'credit_hours' => 'required|integer|min:1|max:10',
             'is_active' => 'boolean'
         ]);
 
+=======
+            'is_active' => 'required|in:0,1'
+        ]);
+
+        // Convert is_active to boolean
+        $validated['is_active'] = (bool) $validated['is_active'];
+
+>>>>>>> julius2
         $subject->update($validated);
 
         return redirect()->route('subjects.index')
@@ -83,10 +118,17 @@ class SubjectController extends Controller
      */
     public function destroy(Subject $subject)
     {
+<<<<<<< HEAD
         // Check if subject has marks
         if ($subject->marks()->count() > 0) {
             return redirect()->route('subjects.index')
                             ->with('error', 'Cannot delete subject with existing marks.');
+=======
+        // Check if subject is assigned to any classes
+        if ($subject->classes()->count() > 0) {
+            return redirect()->route('subjects.index')
+                            ->with('error', 'Cannot delete subject that is assigned to classes.');
+>>>>>>> julius2
         }
 
         $subject->delete();

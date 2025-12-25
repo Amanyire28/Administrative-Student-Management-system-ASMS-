@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\ClassModel;
 use App\Models\Subject;
 use App\Models\Teacher;
+<<<<<<< HEAD
+=======
+use App\Models\ClassLevel;
+use App\Models\Stream;
+>>>>>>> julius2
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -14,7 +19,11 @@ class ClassController extends Controller
      */
     public function index()
     {
+<<<<<<< HEAD
         $classes = ClassModel::withCount('students')->paginate(15);
+=======
+        $classes = ClassModel::with(['classTeacher', 'classLevel', 'stream'])->withCount('students')->paginate(15);
+>>>>>>> julius2
         return view('modules.classes.index', compact('classes'));
     }
 
@@ -23,7 +32,15 @@ class ClassController extends Controller
      */
     public function create()
     {
+<<<<<<< HEAD
         return view('modules.classes.create');
+=======
+        $teachers = Teacher::orderBy('first_name')->get();
+        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+        $streams = Stream::active()->ordered()->get();
+        
+        return view('modules.classes.create', compact('teachers', 'classLevels', 'streams'));
+>>>>>>> julius2
     }
 
     /**
@@ -32,6 +49,7 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+<<<<<<< HEAD
             'name' => 'required|string|max:255|unique:classes',
             'level' => 'nullable|string|max:255',
             'capacity' => 'required|integer|min:1|max:100',
@@ -39,6 +57,19 @@ class ClassController extends Controller
             'description' => 'nullable|string'
         ]);
 
+=======
+            'class_level_id' => 'required|exists:class_levels,id',
+            'stream_id' => 'required|exists:streams,id',
+            'classroom' => 'nullable|string|max:255',
+            'class_teacher_id' => 'nullable|exists:teachers,id'
+        ]);
+
+        // Generate name from class_level and stream
+        $classLevel = ClassLevel::find($validated['class_level_id']);
+        $stream = Stream::find($validated['stream_id']);
+        $validated['name'] = $classLevel->name . ' ' . $stream->name;
+
+>>>>>>> julius2
         ClassModel::create($validated);
 
         return redirect()->route('classes.index')
@@ -50,7 +81,11 @@ class ClassController extends Controller
      */
     public function show(ClassModel $class)
     {
+<<<<<<< HEAD
         $class->load(['students', 'subjects.pivot.teacher', 'teachers']);
+=======
+        $class->load(['students', 'subjects.pivot.teacher', 'teachers', 'classTeacher']);
+>>>>>>> julius2
         return view('modules.classes.show', compact('class'));
     }
 
@@ -59,7 +94,15 @@ class ClassController extends Controller
      */
     public function edit(ClassModel $class)
     {
+<<<<<<< HEAD
         return view('modules.classes.edit', compact('class'));
+=======
+        $teachers = Teacher::orderBy('first_name')->get();
+        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+        $streams = Stream::active()->ordered()->get();
+        
+        return view('modules.classes.edit', compact('class', 'teachers', 'classLevels', 'streams'));
+>>>>>>> julius2
     }
 
     /**
@@ -68,6 +111,7 @@ class ClassController extends Controller
     public function update(Request $request, ClassModel $class)
     {
         $validated = $request->validate([
+<<<<<<< HEAD
             'name' => 'required|string|max:255|unique:classes,name,' . $class->id,
             'level' => 'nullable|string|max:255',
             'capacity' => 'required|integer|min:1|max:100',
@@ -76,6 +120,20 @@ class ClassController extends Controller
             'is_active' => 'boolean'
         ]);
 
+=======
+            'class_level_id' => 'required|exists:class_levels,id',
+            'stream_id' => 'required|exists:streams,id',
+            'classroom' => 'nullable|string|max:255',
+            'class_teacher_id' => 'nullable|exists:teachers,id',
+            'is_active' => 'boolean'
+        ]);
+
+        // Generate name from class_level and stream
+        $classLevel = ClassLevel::find($validated['class_level_id']);
+        $stream = Stream::find($validated['stream_id']);
+        $validated['name'] = $classLevel->name . ' ' . $stream->name;
+
+>>>>>>> julius2
         $class->update($validated);
 
         return redirect()->route('classes.index')

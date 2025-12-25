@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubjectsTable extends Migration
+class CreateStreamsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,11 @@ class CreateSubjectsTable extends Migration
      */
     public function up()
     {
-        Schema::create('subjects', function (Blueprint $table) {
+        Schema::create('streams', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "Mathematics", "Biology"
-            $table->string('code')->unique(); // e.g., "MATH101", "BIO201"
-            $table->text('description')->nullable();
-<<<<<<< HEAD
-            $table->integer('credit_hours')->default(1);
-=======
->>>>>>> julius2
+            $table->string('name')->unique(); // e.g., "A", "B", "Red", "Lions"
+            $table->string('description')->nullable(); // Optional description
+            $table->integer('sort_order')->default(0); // For ordering streams
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -34,6 +30,6 @@ class CreateSubjectsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('subjects');
+        Schema::dropIfExists('streams');
     }
 }
