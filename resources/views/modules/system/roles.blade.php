@@ -6,6 +6,12 @@
 <div class="py-4 sm:py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center mb-6">
+            <button onclick="window.navigateTo('/admin/system')"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:ring-offset-2 transition ease-in-out duration-150"
+                        title="Back to System Management">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Back
+                </button>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Roles & Permissions</h2>
         </div>
 

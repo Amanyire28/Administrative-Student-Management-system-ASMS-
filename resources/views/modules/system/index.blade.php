@@ -52,9 +52,9 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">System Settings</h3>
                 </div>
                 <p class="text-gray-600 dark:text-gray-400 mb-4">Configure system-wide settings</p>
-                <a href="#"
-                   class="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-600 active:bg-gray-500 dark:active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                    Coming Soon
+                <a href="/admin/settings/school-profile"
+                   class="inline-flex items-center px-4 py-2 bg-maroon dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-200 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-600 active:bg-gray-500 dark:active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                   System M anagement
                 </a>
             </div>
             @endcan

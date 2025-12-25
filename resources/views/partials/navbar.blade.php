@@ -13,8 +13,12 @@
             <!-- Brand & Page Title -->
             <div class="flex items-center space-x-4">
                 <!-- Logo -->
-                <div class="hidden lg:flex items-center justify-center w-12 h-12 bg-gradient-to-br from-maroon to-maroon-dark rounded-2xl shadow-lg">
-                    <span class="text-white font-bold text-lg tracking-tight">AS</span>
+                <div class="hidden lg:flex items-center justify-center w-12 h-12 bg-gradient-to-br from-maroon to-maroon-dark rounded-full shadow-lg">
+                    <img
+                src="{{ asset('storage/' . school_setting('school_logo')) }}"
+                alt="{{ school_setting('school_name') }}"
+                class="w-full h-full rounded-full"
+            >
                 </div>
 
                 <!-- Page Information -->

@@ -13,7 +13,11 @@
         <!-- Logo/Brand -->
         <div class="flex items-center">
             <div class="w-8 h-8 bg-maroon rounded-full flex items-center justify-center mr-2">
-                <span class="text-white font-bold text-xs">AS</span>
+                <img
+                src="{{ asset('storage/' . school_setting('school_logo')) }}"
+                alt="{{ school_setting('school_name') }}"
+                class="w-full h-full rounded-full"
+            >
             </div>
             <span class="font-bold text-maroon dark:text-maroon-light text-lg">{{ config('app.name', 'ASMS') }}</span>
         </div>

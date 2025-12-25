@@ -12,7 +12,11 @@
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-maroon font-bold text-lg">AS</span>
+                     <img
+                src="{{ asset('storage/' . school_setting('school_logo')) }}"
+                alt="{{ school_setting('school_name') }}"
+                class="w-full h-full rounded-full"
+            >
                 </div>
                 <div>
                     <p class="font-medium text-white">{{ config('app.name', 'ASMS') }}</p>

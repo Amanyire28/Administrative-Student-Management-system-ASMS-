@@ -16,13 +16,54 @@ class SystemController extends Controller
         return view('modules.system.index');
     }
 
-    public function users()
-    {
-        abort_unless(auth()->user()->can('system.users'), 403);
+    public function users(Request $request)
+{
+    abort_unless(auth()->user()->can('system.users'), 403);
 
-         $users = User::with('roles')->paginate(10);
-        return view('modules.system.users', compact('users'));
+    $query = User::with('roles');
+
+    // Search functionality
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhere('staff_id', 'like', "%{$search}%");
+        });
     }
+
+    // Sorting
+    $sort = $request->get('sort', 'id');
+    $direction = $request->get('direction', 'desc');
+
+    if (in_array($sort, ['name', 'email', 'staff_id', 'created_at'])) {
+        $query->orderBy($sort, $direction);
+    }
+
+    $users = $query->paginate(10)->withQueryString();
+
+    // Check if it's an AJAX request for SPA navigation
+    if ($request->ajax() && $request->header('X-SPA-Request')) {
+        // Return HTML wrapped in JSON for SPA router
+        return response()->json([
+            'html' => view('modules.system.users', compact('users'))->render(),
+            'title' => 'User Management'
+        ]);
+    }
+
+    // Return JSON for AJAX search (non-SPA)
+    if ($request->ajax()) {
+        return response()->json([
+            'table' => view('modules.system.partials.users-table', compact('users'))->render(),
+            'total' => $users->total(),
+            'activeCount' => $users->where('is_active', true)->count(),
+            'inactiveCount' => $users->where('is_active', false)->count(),
+        ]);
+    }
+
+    // Regular request
+    return view('modules.system.users', compact('users'));
+}
 
     public function roles()
     {
@@ -36,19 +77,29 @@ class SystemController extends Controller
         return view('modules.system.roles', compact('roles', 'permissions'));
     }
 
-    public function editUserPermissions(User $user)
-    {
-        abort_unless(auth()->user()->can('system.users'), 403);
+   public function editUserPermissions(User $user)
+{
+    abort_unless(auth()->user()->can('system.users'), 403);
 
-        $roles = Role::all();
-        $userRoles = $user->roles->pluck('id')->toArray();
-        $permissions = Permission::all()->groupBy(function($permission) {
-            return explode('.', $permission->name)[0];
-        });
-        $userPermissions = $user->getAllPermissions()->pluck('id')->toArray();
+    $roles = Role::all();
+    $userRoles = $user->roles->pluck('id')->toArray();
+    $permissions = Permission::all()->groupBy(function($permission) {
+        return explode('.', $permission->name)[0];
+    });
+    $userPermissions = $user->getAllPermissions()->pluck('id')->toArray();
 
-        return view('modules.system.user-permissions', compact('user', 'roles', 'userRoles', 'permissions', 'userPermissions'));
+    // Check if it's an AJAX request for SPA navigation
+    if (request()->ajax() && request()->header('X-SPA-Request')) {
+        // Return HTML wrapped in JSON for SPA router
+        return response()->json([
+            'html' => view('modules.system.user-permissions', compact('user', 'roles', 'userRoles', 'permissions', 'userPermissions'))->render(),
+            'title' => 'Edit User Permissions - ' . $user->name
+        ]);
     }
+
+    // Regular request (full page load or non-SPA AJAX)
+    return view('modules.system.user-permissions', compact('user', 'roles', 'userRoles', 'permissions', 'userPermissions'));
+}
 
     public function updateUserPermissions(Request $request, User $user)
     {

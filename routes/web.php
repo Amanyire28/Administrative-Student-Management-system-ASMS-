@@ -9,6 +9,7 @@ use App\Http\Controllers\MarkController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\SchoolSettingController; // ← ADD THIS LINE
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -224,8 +225,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->middleware('permission:reports.export')
         ->name('report.card.download');
 
-
-            // ========================================
+    // ========================================
     // SYSTEM MANAGEMENT - Protected
     // ========================================
     Route::middleware('permission:system.users')->group(function () {
@@ -237,6 +237,38 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
 
     Route::middleware('permission:system.roles')->group(function () {
         Route::get('system/roles', [SystemController::class, 'roles'])->name('system.roles');
+    });
+
+    // ========================================
+    // SCHOOL SETTINGS - Protected (ADD THIS SECTION)
+    // ========================================
+    Route::middleware('permission:system.settings')->group(function () {
+        // Main settings page
+        Route::get('settings/school-profile', [SchoolSettingController::class, 'edit'])
+            ->name('settings.school-profile');
+
+        // Update routes for each section
+        Route::post('settings/school-profile/basic-info', [SchoolSettingController::class, 'updateBasicInfo'])
+            ->name('settings.update-basic-info');
+
+        Route::post('settings/school-profile/contact-info', [SchoolSettingController::class, 'updateContactInfo'])
+            ->name('settings.update-contact-info');
+
+        Route::post('settings/school-profile/academic-structure', [SchoolSettingController::class, 'updateAcademicStructure'])
+            ->name('settings.update-academic-structure');
+
+        Route::post('settings/school-profile/email-config', [SchoolSettingController::class, 'updateEmailConfig'])
+            ->name('settings.update-email-config');
+
+        Route::post('settings/school-profile/report-card', [SchoolSettingController::class, 'updateReportCardSettings'])
+            ->name('settings.update-report-card');
+
+        // Delete routes
+        Route::delete('settings/school-profile/delete-logo', [SchoolSettingController::class, 'deleteLogo'])
+            ->name('settings.delete-logo');
+
+        Route::delete('settings/school-profile/delete-signature', [SchoolSettingController::class, 'deleteSignature'])
+            ->name('settings.delete-signature');
     });
 
 });

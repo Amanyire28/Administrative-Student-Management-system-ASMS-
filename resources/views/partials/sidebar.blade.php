@@ -2,17 +2,31 @@
        x-data="sidebarData">
 
     <!-- Logo and Brand -->
-    <div class="p-4 border-b border-white/10 dark:border-gray-700 sidebar-header">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-maroon font-bold text-lg">AS</span>
-            </div>
-            <div class="sidebar-text" x-show="!sidebarCollapsed" x-transition>
-                <h2 class="font-bold text-lg text-white">{{ config('app.name', 'ASMS') }}</h2>
-                <p class="text-xs text-white/80">Academic School System</p>
-            </div>
+   <div class="p-4 border-b border-white/10 dark:border-gray-700 sidebar-header">
+    <div class="flex items-center gap-3">
+
+        <!-- Logo Container -->
+        <div class="w-11 h-11 rounded-full overflow-hidden bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm ring-1 ring-white/10">
+            <img
+                src="{{ asset('storage/' . school_setting('school_logo')) }}"
+                alt="{{ school_setting('school_name') }}"
+                class="w-full h-full "
+            >
         </div>
+
+        <!-- Text -->
+        <div class="sidebar-text flex flex-col" x-show="!sidebarCollapsed" x-transition>
+            <h2 class="font-semibold text-base text-white leading-tight tracking-wide">
+                {{ config('app.name', 'ASMS') }}
+            </h2>
+            <p class="text-[11px] text-white/70 tracking-wide">
+                Academic School System
+            </p>
+        </div>
+
     </div>
+</div>
+
 
     <!-- Navigation Menu (Expanded Mode) -->
     <nav class="p-4 space-y-1 flex-1 sidebar-content" x-show="!sidebarCollapsed" x-transition>

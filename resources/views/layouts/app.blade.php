@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>@yield('title', 'Dashboard') - {{ config('app.name', 'ASMS') }}</title>
+    <title>@yield('title', school_setting('school_name') .'Dashboard') </title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,6 +32,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+        /* Keep all your existing styles here */
         /* Layout styles */
         html, body {
             margin: 0;
@@ -149,7 +150,7 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
-    <!-- Desktop Layout  -->
+    <!-- Desktop Layout -->
     <div class="desktop-layout hidden lg:flex">
         <!-- Sidebar Area -->
         <div class="sidebar-area">
@@ -198,24 +199,6 @@
                     </div>
                 </div>
                 @endif
-
-                @if(session('warning'))
-                <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400"></i>
-                            <p class="ml-3 text-yellow-700 dark:text-yellow-300">{{ session('warning') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-yellow-500 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
             </div>
 
             <!-- Loading Indicator -->
@@ -247,7 +230,7 @@
         </div>
     </div>
 
-    <!-- Mobile Layout  -->
+    <!-- Mobile Layout -->
     <div class="lg:hidden">
         @include('partials.mobile-nav')
         @include('partials.mobile-sidebar')
@@ -324,148 +307,208 @@
     <script src="{{ asset('js/spa-router.js') }}"></script>
 
     <!-- Alpine.js Component Definitions -->
-    <script>
-        document.addEventListener('alpine:init', () => {
-            // Sidebar Data Component
-            Alpine.data('sidebarData', () => ({
-                dropdowns: {
-                    students: false,
-                    teachers: false,
-                    marks: false,
-                    reports: false,
-                      system: false
-                },
-                sidebarCollapsed: false,
-                currentPath: window.location.pathname,
+    <!-- Alpine.js Component Definitions -->
+<script>
+     document.addEventListener('alpine:init', () => {
+         // School Profile Settings Component
+         Alpine.data('schoolProfileSettings', () => ({
+             activeTab: 'basic',
 
-                init() {
-                    // Initialize collapsed state from localStorage
-                    try {
-                        this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-                        this.applySidebarState();
-                    } catch (e) {
-                        console.warn('Could not read sidebar state:', e);
-                        this.sidebarCollapsed = false;
-                    }
+             submitForm(event) {
+                 const form = event.target;
+                 const formData = new FormData(form);
+                 const action = form.getAttribute('action');
+                 const method = form.getAttribute('method') || 'POST';
 
-                    // Set initial dropdown states based on current URL
-                    this.updateDropdownsFromURL(this.currentPath);
+                 // Get CSRF token
+                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                    // Listen for SPA navigation
-                    window.addEventListener('spa:navigated', (e) => {
-                        this.currentPath = e.detail.path || window.location.pathname;
-                        this.updateDropdownsFromURL(this.currentPath);
-                    });
+                 if (window.router && window.router.showLoading) {
+                     window.router.showLoading();
+                 }
 
-                    // Listen for browser back/forward
-                    window.addEventListener('popstate', () => {
-                        this.currentPath = window.location.pathname;
-                        this.updateDropdownsFromURL(this.currentPath);
-                    });
+                 fetch(action, {
+                     method: method,
+                     body: formData,
+                     headers: {
+                         'X-Requested-With': 'XMLHttpRequest',
+                         'Accept': 'application/json',
+                         'X-CSRF-TOKEN': token,
+                         'Cache-Control': 'no-cache, no-store, max-age=0',
+                         'Pragma': 'no-cache'
+                     },
+                     cache: 'no-store',
+                     credentials: 'same-origin'
+                 })
+                 .then(response => {
+                     // Check content type before parsing JSON
+                     const contentType = response.headers.get('content-type');
+                     if (contentType && contentType.includes('application/json')) {
+                         return response.json();
+                     } else {
+                         // If not JSON, reload page
+                         window.location.reload();
+                         return { success: true };
+                     }
+                 })
+                 .then(data => {
+                     if (data && data.success) {
+                         // Show success message if router has showAlert
+                         if (window.router && window.router.showAlert) {
+                             window.router.showAlert(data.message || 'Saved successfully!', 'success');
+                         }
+                         // Small delay before reload to show message
+                         setTimeout(() => window.location.reload(), 1000);
+                     } else if (data && data.errors) {
+                         // Show validation errors
+                         let errorMsg = 'Validation errors:\n';
+                         for (const [field, errors] of Object.entries(data.errors)) {
+                             errorMsg += `• ${errors.join(', ')}\n`;
+                         }
+                         alert(errorMsg);
+                     } else {
+                         throw new Error(data?.message || 'Error saving!');
+                     }
+                 })
+                 .catch(error => {
+                     console.error('Error:', error);
+                     if (window.router && window.router.hideLoading) {
+                         window.router.hideLoading();
+                     }
+                     alert('Error: ' + error.message);
+                 });
+             }
+         }));
 
-                    // Listen for sidebar toggle from navbar
-                    document.addEventListener('toggle-sidebar', () => {
-                        this.toggleSidebar();
-                    });
+         // Sidebar Data Component
+         Alpine.data('sidebarData', () => ({
+             dropdowns: {
+                 students: false,
+                 teachers: false,
+                 marks: false,
+                 reports: false,
+                 system: false
+             },
+             sidebarCollapsed: false,
+             currentPath: window.location.pathname,
 
-                    // Close dropdowns when clicking outside
-                    document.addEventListener('click', (e) => {
-                        if (!this.$el.contains(e.target)) {
-                            this.closeAllDropdowns();
-                        }
-                    });
+             init() {
+                 // Initialize collapsed state from localStorage
+                 try {
+                     this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                     this.applySidebarState();
+                 } catch (e) {
+                     console.warn('Could not read sidebar state:', e);
+                     this.sidebarCollapsed = false;
+                 }
 
-                    console.log('✅ Sidebar Alpine component initialized');
-                },
+                 // Set initial dropdown states based on current URL
+                 this.updateDropdownsFromURL(this.currentPath);
 
-                updateDropdownsFromURL(path) {
-                    this.closeAllDropdowns();
+                 // Listen for SPA navigation
+                 window.addEventListener('spa:navigated', (e) => {
+                     this.currentPath = e.detail.path || window.location.pathname;
+                     this.updateDropdownsFromURL(this.currentPath);
+                 });
 
-                    if (!this.sidebarCollapsed) {
-                        if (path.startsWith('/admin/students')) this.dropdowns.students = true;
-                        else if (path.startsWith('/admin/teachers')) this.dropdowns.teachers = true;
-                        else if (path.startsWith('/admin/marks')) this.dropdowns.marks = true;
-                        else if (path.startsWith('/admin/report-card')) this.dropdowns.reports = true;
-                         else if (path.startsWith('/admin/system')) this.dropdowns.system = true;
-                    }
-                },
+                 // Listen for sidebar toggle from navbar
+                 document.addEventListener('toggle-sidebar', () => {
+                     this.toggleSidebar();
+                 });
 
-                toggleDropdown(name, event) {
-                    if (event) event.stopPropagation();
+                 // Close dropdowns when clicking outside
+                 document.addEventListener('click', (e) => {
+                     if (!this.$el.contains(e.target)) {
+                         this.closeAllDropdowns();
+                     }
+                 });
+             },
 
-                    if (this.dropdowns[name]) {
-                        this.dropdowns[name] = false;
-                    } else {
-                        this.closeAllDropdowns();
-                        this.dropdowns[name] = true;
-                    }
-                },
+             updateDropdownsFromURL(path) {
+                 this.closeAllDropdowns();
 
-                closeAllDropdowns() {
-                    Object.keys(this.dropdowns).forEach(key => {
-                        this.dropdowns[key] = false;
-                    });
-                },
+                 if (!this.sidebarCollapsed) {
+                     if (path.startsWith('/admin/students')) this.dropdowns.students = true;
+                     else if (path.startsWith('/admin/teachers')) this.dropdowns.teachers = true;
+                     else if (path.startsWith('/admin/marks')) this.dropdowns.marks = true;
+                     else if (path.startsWith('/admin/report-card')) this.dropdowns.reports = true;
+                     else if (path.startsWith('/admin/system')) this.dropdowns.system = true;
+                 }
+             },
 
-                handleLinkClick() {
-                    setTimeout(() => this.closeAllDropdowns(), 100);
-                },
+             toggleDropdown(name, event) {
+                 if (event) event.stopPropagation();
 
-                isActive(path) {
-                    if (!path || path === '#') return false;
-                    return this.currentPath === path || this.currentPath.startsWith(path + '/');
-                },
+                 if (this.dropdowns[name]) {
+                     this.dropdowns[name] = false;
+                 } else {
+                     this.closeAllDropdowns();
+                     this.dropdowns[name] = true;
+                 }
+             },
 
-                isExactActive(path) {
-                    return this.currentPath === path;
-                },
+             closeAllDropdowns() {
+                 Object.keys(this.dropdowns).forEach(key => {
+                     this.dropdowns[key] = false;
+                 });
+             },
 
-                toggleSidebar() {
-                    this.sidebarCollapsed = !this.sidebarCollapsed;
+             handleLinkClick() {
+                 setTimeout(() => this.closeAllDropdowns(), 100);
+             },
 
-                    try {
-                        localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
-                    } catch (e) {
-                        console.warn('Could not save sidebar state:', e);
-                    }
+             isActive(path) {
+                 if (!path || path === '#') return false;
+                 return this.currentPath === path || this.currentPath.startsWith(path + '/');
+             },
 
-                    this.applySidebarState();
+             isExactActive(path) {
+                 return this.currentPath === path;
+             },
 
-                    // Close all dropdowns when collapsing
-                    if (this.sidebarCollapsed) {
-                        this.closeAllDropdowns();
-                    } else {
-                        // Reopen appropriate dropdown when expanding
-                        this.updateDropdownsFromURL(this.currentPath);
-                    }
+             toggleSidebar() {
+                 this.sidebarCollapsed = !this.sidebarCollapsed;
 
-                    console.log('✅ Sidebar:', this.sidebarCollapsed ? 'collapsed' : 'expanded');
-                },
+                 try {
+                     localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
+                 } catch (e) {
+                     console.warn('Could not save sidebar state:', e);
+                 }
 
-                applySidebarState() {
-                    const sidebar = document.querySelector('.sidebar');
-                    const sidebarArea = document.querySelector('.sidebar-area');
-                    const mainContent = document.querySelector('.main-content-area');
-                    const toggleIcon = document.querySelector('#sidebarToggle i');
+                 this.applySidebarState();
 
-                    if (this.sidebarCollapsed) {
-                        sidebar?.classList.add('collapsed');
-                        sidebarArea?.classList.add('collapsed');
-                        mainContent?.classList.add('collapsed');
-                        toggleIcon?.classList.remove('fa-chevron-left');
-                        toggleIcon?.classList.add('fa-chevron-right');
-                    } else {
-                        sidebar?.classList.remove('collapsed');
-                        sidebarArea?.classList.remove('collapsed');
-                        mainContent?.classList.remove('collapsed');
-                        toggleIcon?.classList.remove('fa-chevron-right');
-                        toggleIcon?.classList.add('fa-chevron-left');
-                    }
-                }
-            }));
-        });
-    </script>
+                 // Close all dropdowns when collapsing
+                 if (this.sidebarCollapsed) {
+                     this.closeAllDropdowns();
+                 } else {
+                     // Reopen appropriate dropdown when expanding
+                     this.updateDropdownsFromURL(this.currentPath);
+                 }
+             },
 
+             applySidebarState() {
+                 const sidebar = document.querySelector('.sidebar');
+                 const sidebarArea = document.querySelector('.sidebar-area');
+                 const mainContent = document.querySelector('.main-content-area');
+                 const toggleIcon = document.querySelector('#sidebarToggle i');
+
+                 if (this.sidebarCollapsed) {
+                     sidebar?.classList.add('collapsed');
+                     sidebarArea?.classList.add('collapsed');
+                     mainContent?.classList.add('collapsed');
+                     toggleIcon?.classList.remove('fa-chevron-left');
+                     toggleIcon?.classList.add('fa-chevron-right');
+                 } else {
+                     sidebar?.classList.remove('collapsed');
+                     sidebarArea?.classList.remove('collapsed');
+                     mainContent?.classList.remove('collapsed');
+                     toggleIcon?.classList.remove('fa-chevron-right');
+                     toggleIcon?.classList.add('fa-chevron-left');
+                 }
+             }
+         }));
+     });
+</script>
     <!-- Theme Management -->
     <script>
         // Global theme management
@@ -489,7 +532,6 @@
                 } catch (e) {
                     console.warn('Could not save theme:', e);
                 }
-                console.log('✅ Theme:', this.current);
             },
 
             apply() {
@@ -505,16 +547,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ App initialized');
-            console.log('📱 User Agent:', navigator.userAgent);
-
-            // Listen for navigation events
-            window.addEventListener('spa:navigated', (e) => {
-                console.log('📍 Navigated to:', e.detail.path);
-            });
-
-            window.addEventListener('spa:rendered', (e) => {
-                console.log('🎨 Content rendered');
-            });
         });
 
         // Global helper functions
@@ -522,7 +554,6 @@
             if (window.router && typeof window.router.showAlert === 'function') {
                 window.router.showAlert(msg, type);
             } else {
-                console.warn('Router not available for showAlert');
                 alert(msg);
             }
         };
@@ -531,7 +562,6 @@
             if (window.router && typeof window.router.navigate === 'function') {
                 window.router.navigate(path, opts);
             } else {
-                console.warn('Router not available for navigation');
                 window.location.href = path;
             }
         };
@@ -548,22 +578,14 @@
             if (window.appTheme && typeof window.appTheme.toggle === 'function') {
                 window.appTheme.toggle();
             }
-
-
         };
 
+        window.toggleSidebar = function() {
+            document.dispatchEvent(new CustomEvent('toggle-sidebar'));
+        };
 
-
-window.toggleSidebar = function() {
-
-    document.dispatchEvent(new CustomEvent('toggle-sidebar'));
-
-
-    const sidebarEl = document.querySelector('[x-data*="sidebarData"]');
-    if (sidebarEl && sidebarEl.__x) {
-        sidebarEl.__x.$data.toggleSidebar();
-    }
-};
+        // REMOVE this duplicate function - it's already registered in the <head>
+        // window.schoolProfileSettings = function() { ... }
     </script>
 
     @stack('scripts')
