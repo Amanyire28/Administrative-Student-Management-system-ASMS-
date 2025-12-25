@@ -1,58 +1,510 @@
-<div class="sidebar p-3">
-    <div class="sidebar-profile d-flex flex-column align-items-center mb-3">
-        <div class="avatar" aria-hidden="true">MA</div>
-        <div class="profile-name mt-2">Mathew Amanyire</div>
-        <div class="profile-role">Administrator</div>
+<aside class="sidebar bg-maroon dark:bg-gray-800 border-r border-white/10 min-h-screen flex flex-col"
+       x-data="sidebarData">
+
+    <!-- Logo and Brand -->
+    <div class="p-4 border-b border-white/10 dark:border-gray-700 sidebar-header">
+        <div class="flex items-center gap-3">
+
+            <!-- Logo Container -->
+            <div class="w-11 h-11 rounded-full overflow-hidden bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm ring-1 ring-white/10">
+                <img
+                    src="{{ asset('storage/' . school_setting('school_logo')) }}"
+                    alt="{{ school_setting('school_name') }}"
+                    class="w-full h-full "
+                >
+            </div>
+
+            <!-- Text -->
+            <div class="sidebar-text flex flex-col" x-show="!sidebarCollapsed" x-transition>
+                <h2 class="font-semibold text-base text-white leading-tight tracking-wide">
+                    {{ config('app.name', 'ASMS') }}
+                </h2>
+                <p class="text-[11px] text-white/70 tracking-wide">
+                    Academic School System
+                </p>
+            </div>
+
+        </div>
     </div>
-    
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('students.index') }}" class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                Students
-            </a>
-        </li>
-        <li class="nav-item dropdown-sub">
-            <a href="#" class="nav-link" aria-haspopup="true" aria-expanded="false">
-                Academic <span class="caret">▾</span>
-            </a>
-            <ul class="dropdown-submenu list-unstyled" role="menu">
-                <li>
-                    <a href="{{ route('classes.index') }}" class="nav-link sub-link {{ request()->routeIs('classes.*') ? 'active' : '' }}" role="menuitem">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M3 6l9-4 9 4v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6z" fill="currentColor"/>
-                        </svg>
-                        Classes
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('subjects.index') }}" class="nav-link sub-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}" role="menuitem">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M3 7h18v2H3V7zm0 6h18v2H3v-2z" fill="currentColor"/>
-                        </svg>
-                        Subjects
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('marks.index') }}" class="nav-link {{ request()->routeIs('marks.*') ? 'active' : '' }}">
-                Marks
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('teachers.index') }}" class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                Teachers
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('marks.entry.form') }}" class="nav-link {{ request()->routeIs('marks.entry*') ? 'active' : '' }}">
-                Enter Marks
-            </a>
-        </li>
-    </ul>
+
+    <!-- Navigation Menu (Expanded Mode) -->
+    <nav class="p-4 space-y-1 flex-1 sidebar-content" x-show="!sidebarCollapsed" x-transition>
+        <!-- Dashboard (Everyone can see) -->
+        <a href="/dashboard"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isExactActive('/dashboard'),
+               'text-white/90 hover:bg-white/20': !isExactActive('/dashboard')
+           }"
+           class="nav-link flex items-center space-x-3 p-3 rounded-lg transition-all duration-200">
+            <i class="fas fa-home w-5 text-center"></i>
+            <span class="font-medium">Dashboard</span>
+        </a>
+
+        <!-- Students Dropdown (Only if has permission) -->
+        @can('students.view')
+        <div class="relative">
+            <button @click="toggleDropdown('students', $event)"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/students'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/students')
+                }"
+                class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-users w-5 text-center"></i>
+                    <span class="font-medium">Students</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                   :class="dropdowns.students ? 'rotate-180' : ''"></i>
+            </button>
+
+            <div x-show="dropdowns.students"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 style="display: none;"
+                 class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('students.view')
+                <a href="/admin/students"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/students'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/students')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-list w-4 text-center"></i>
+                    <span>All Students</span>
+                </a>
+                @endcan
+
+                @can('students.create')
+                <a href="/admin/students/create"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/students/create'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/students/create')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-user-plus w-4 text-center"></i>
+                    <span>Add New</span>
+                </a>
+                @endcan
+            </div>
+        </div>
+        @endcan
+
+        <!-- Teachers Dropdown (Only if has permission) -->
+        @can('teachers.view')
+        <div class="relative">
+            <button @click="toggleDropdown('teachers', $event)"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/teachers'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/teachers')
+                }"
+                class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chalkboard-teacher w-5 text-center"></i>
+                    <span class="font-medium">Teachers</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                   :class="dropdowns.teachers ? 'rotate-180' : ''"></i>
+            </button>
+
+            <div x-show="dropdowns.teachers" x-transition style="display: none;"
+                 class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('teachers.view')
+                <a href="/admin/teachers"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/teachers'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/teachers')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-list w-4 text-center"></i>
+                    <span>All Teachers</span>
+                </a>
+                @endcan
+
+                @can('teachers.create')
+                <a href="/admin/teachers/create"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/teachers/create'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/teachers/create')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-user-plus w-4 text-center"></i>
+                    <span>Add New</span>
+                </a>
+                @endcan
+            </div>
+        </div>
+        @endcan
+
+        <!-- Classes Dropdown -->
+@can('classes.view')
+<div class="relative">
+    <button @click="toggleDropdown('classes', $event)"
+        :class="{
+            'bg-white !text-maroon font-semibold': isActive('/admin/classes') || isActive('/admin/class-levels') || isActive('/admin/streams'),
+            'text-white/90 hover:bg-white/20': !isActive('/admin/classes') && !isActive('/admin/class-levels') && !isActive('/admin/streams')
+        }"
+        class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+        <div class="flex items-center space-x-3">
+            <i class="fas fa-chalkboard w-5 text-center"></i>
+            <span class="font-medium">Classes</span>
+        </div>
+        <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+           :class="dropdowns.classes ? 'rotate-180' : ''"></i>
+    </button>
+
+    <!-- UPDATED: Match other dropdowns -->
+    <div x-show="dropdowns.classes"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         style="display: none;"
+         class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+        <a href="/admin/classes"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isExactActive('/admin/classes'),
+               'text-white/90 hover:bg-white/20': !isExactActive('/admin/classes')
+           }"
+           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+            <i class="fas fa-list w-4 text-center"></i>
+            <span>All Classes</span>
+        </a>
+        <a href="/admin/class-categories"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isActive('/admin/class-categories'),
+               'text-white/90 hover:bg-white/20': !isActive('/admin/class-categories')
+           }"
+           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+            <i class="fas fa-tags w-4 text-center"></i>
+            <span>Categories</span>
+        </a>
+        <a href="/admin/class-levels"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isActive('/admin/class-levels'),
+               'text-white/90 hover:bg-white/20': !isActive('/admin/class-levels')
+           }"
+           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+            <i class="fas fa-layer-group w-4 text-center"></i>
+            <span>Class Levels</span>
+        </a>
+        <a href="/admin/streams"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isActive('/admin/streams'),
+               'text-white/90 hover:bg-white/20': !isActive('/admin/streams')
+           }"
+           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+            <i class="fas fa-stream w-4 text-center"></i>
+            <span>Streams</span>
+        </a>
+    </div>
 </div>
+@endcan
+
+        <!-- Subjects (Only if has permission) -->
+        @can('subjects.view')
+        <a href="/admin/subjects"
+           @click="handleLinkClick()"
+           :class="{
+               'bg-white !text-maroon font-semibold': isActive('/admin/subjects'),
+               'text-white/90 hover:bg-white/20': !isActive('/admin/subjects')
+           }"
+           class="nav-link flex items-center space-x-3 p-3 rounded-lg transition-all duration-200">
+            <i class="fas fa-book w-5 text-center"></i>
+            <span class="font-medium">Subjects</span>
+        </a>
+        @endcan
+
+        <!-- Marks Dropdown (Only if has permission) -->
+        @canany(['marks.view', 'marks.entry'])
+        <div class="relative">
+            <button @click="toggleDropdown('marks', $event)"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/marks'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/marks')
+                }"
+                class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-edit w-5 text-center"></i>
+                    <span class="font-medium">Marks</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                   :class="dropdowns.marks ? 'rotate-180' : ''"></i>
+            </button>
+
+            <div x-show="dropdowns.marks" x-transition style="display: none;"
+                 class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('marks.entry')
+                <a href="/admin/marks-entry"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/marks-entry'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/marks-entry')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-pen w-4 text-center"></i>
+                    <span>Enter Marks</span>
+                </a>
+                @endcan
+
+                @can('marks.view')
+                <a href="/admin/marks"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/marks'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/marks')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-list w-4 text-center"></i>
+                    <span>View Marks</span>
+                </a>
+                @endcan
+            </div>
+        </div>
+        @endcanany
+
+        <!-- Reports Dropdown (Only if has permission) -->
+        @can('reports.view')
+        <div class="relative">
+            <button @click="toggleDropdown('reports', $event)"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/report-card'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/report-card')
+                }"
+                class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-file-alt w-5 text-center"></i>
+                    <span class="font-medium">Reports</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                   :class="dropdowns.reports ? 'rotate-180' : ''"></i>
+            </button>
+
+            <div x-show="dropdowns.reports" x-transition style="display: none;"
+                 class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+
+                @can('reports.view')
+                <a href="/admin/report-card/form"
+                   @click="handleLinkClick()"
+                   :class="{
+                       'bg-white !text-maroon font-semibold': isExactActive('/admin/report-card/form'),
+                       'text-white/90 hover:bg-white/20': !isExactActive('/admin/report-card/form')
+                   }"
+                   class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-graduation-cap w-4 text-center"></i>
+                    <span>Report Cards</span>
+                </a>
+                @endcan
+            </div>
+        </div>
+        @endcan
+
+       <!-- Settings (using your HEAD branch structure) -->
+       @canany(['system.users', 'system.roles'])
+        <a href="/admin/system"
+        @click="handleLinkClick()"
+        :class="{
+            'bg-white !text-maroon font-semibold': isActive('/admin/system'),
+            'text-white/90 hover:bg-white/20': !isActive('/admin/system')
+        }"
+        class="nav-link flex items-center space-x-3 p-3 rounded-lg transition-all duration-200">
+            <i class="fas fa-cog w-5 text-center"></i>
+            <span class="font-medium">Settings</span>
+        </a>
+        @endcanany
+    </nav>
+
+    <!-- Icons Only Menu (Collapsed Mode) - WITH PERMISSIONS -->
+    <nav class="p-2 space-y-1 flex-1 sidebar-icons" x-show="sidebarCollapsed" x-transition style="display: none;">
+        <!-- Dashboard Icon (Everyone) -->
+        <a href="/dashboard"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isExactActive('/dashboard')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-home text-xl"></i>
+            <span class="sidebar-tooltip">Dashboard</span>
+        </a>
+
+        <!-- Students Icon -->
+        @can('students.view')
+        <a href="/admin/students"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/students')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-users text-xl"></i>
+            <span class="sidebar-tooltip">Students</span>
+        </a>
+        @endcan
+
+        <!-- Teachers Icon -->
+        @can('teachers.view')
+        <a href="/admin/teachers"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/teachers')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-chalkboard-teacher text-xl"></i>
+            <span class="sidebar-tooltip">Teachers</span>
+        </a>
+        @endcan
+
+        <!-- Classes Icon -->
+        @can('classes.view')
+        <a href="/admin/classes"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/classes')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-chalkboard text-xl"></i>
+            <span class="sidebar-tooltip">Classes</span>
+        </a>
+        @endcan
+
+        <!-- Subjects Icon -->
+        @can('subjects.view')
+        <a href="/admin/subjects"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/subjects')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-book text-xl"></i>
+            <span class="sidebar-tooltip">Subjects</span>
+        </a>
+        @endcan
+
+        <!-- Marks Icon -->
+        @can('marks.entry')
+        <a href="/admin/marks-entry"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/marks-entry')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-edit text-xl"></i>
+            <span class="sidebar-tooltip">Marks</span>
+        </a>
+        @endcan
+
+        <!-- Reports Icon -->
+        @can('reports.view')
+        <a href="/admin/report-card/form"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/report-card/form')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-file-alt text-xl"></i>
+            <span class="sidebar-tooltip">Reports</span>
+        </a>
+        @endcan
+
+        <!-- Settings Icon -->
+        @can(['system.users', 'system.roles'])
+        <a href="/admin/system"
+           @click="handleLinkClick()"
+           :class="{'bg-white/30': isActive('/admin/system')}"
+           class="nav-link-icon group relative flex justify-center p-3 rounded-lg transition-all text-white/90 hover:bg-white/20">
+            <i class="fas fa-cog text-xl"></i>
+            <span class="sidebar-tooltip">Settings</span>
+        </a>
+        @endcan
+    </nav>
+
+    <!-- Logout Button (Everyone) -->
+    <div class="border-t border-white/10">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="flex items-center w-full p-4 hover:bg-white/20 text-white/90 transition-all"
+                    :class="sidebarCollapsed ? 'justify-center' : 'space-x-3'">
+                <i class="fas fa-sign-out-alt" :class="sidebarCollapsed ? 'text-xl' : 'w-5 text-center'"></i>
+                <span class="font-medium" x-show="!sidebarCollapsed" x-transition>Logout</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+<style>
+    .sidebar {
+        width: 256px;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(180deg, #800000 0%, #5f0000 100%) !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .sidebar.collapsed {
+        width: 70px !important;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+    }
+
+    /* Maroon dark for dropdown backgrounds */
+    .bg-maroon-dark {
+        background-color: #5f0000 !important;
+    }
+
+    .dark .bg-maroon-dark {
+        background-color: #1f2937 !important;
+    }
+
+    /* Tooltip for collapsed mode */
+    .sidebar-tooltip {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #1f2937;
+        color: white;
+        font-size: 0.75rem;
+        border-radius: 0.375rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 50;
+    }
+
+    .group:hover .sidebar-tooltip {
+        opacity: 1;
+    }
+
+    /* Dark mode */
+    .dark .sidebar {
+        background: linear-gradient(180deg, #1f2937 0%, #111827 100%) !important;
+    }
+
+    /* Active state styling */
+    .nav-link.bg-white i,
+    .nav-link.bg-white span,
+    .nav-link-icon.bg-white\/30 i {
+        color: #800000 !important;
+    }
+
+    /* Smooth transitions */
+    .nav-link, .nav-link-icon {
+        transition: all 0.2s ease-in-out;
+    }
+</style>

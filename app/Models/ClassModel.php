@@ -13,10 +13,10 @@ class ClassModel extends Model
 
     protected $fillable = [
         'name',
-        'level',
-        'capacity',
+        'class_level_id',
+        'stream_id',
         'classroom',
-        'description',
+        'class_teacher_id',
         'is_active'
     ];
 
@@ -44,6 +44,21 @@ class ClassModel extends Model
                     ->withTimestamps();
     }
 
+    public function classTeacher()
+    {
+        return $this->belongsTo(Teacher::class, 'class_teacher_id');
+    }
+
+    public function classLevel()
+    {
+        return $this->belongsTo(ClassLevel::class, 'class_level_id');
+    }
+
+    public function stream()
+    {
+        return $this->belongsTo(Stream::class, 'stream_id');
+    }
+
     public function marks()
     {
         return $this->hasMany(Mark::class, 'class_id');
@@ -53,5 +68,30 @@ class ClassModel extends Model
     public function getStudentCountAttribute()
     {
         return $this->students()->count();
+    }
+
+    public function getFullNameAttribute()
+    {
+        // Check if relationships exist before accessing
+        if ($this->classLevel && $this->stream) {
+            return $this->classLevel->name . ' ' . $this->stream->name;
+        }
+        return $this->name;
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('name');
     }
 }

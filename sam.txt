@@ -1,0 +1,1810 @@
+# Complete Implementation Guide: ASMS Permission System
+## From Zero to Fully Functional - Step by Step
+
+---
+
+## 📋 Table of Contents
+1. [Overview & Goals](#overview)
+2. [PHASE 1: Install Spatie & Database Setup](#phase-1)
+3. [PHASE 2: School Email & Password System](#phase-2)
+4. [PHASE 3: Create Permissions & Roles](#phase-3)
+5. [PHASE 4: Protect Routes](#phase-4)
+6. [PHASE 5: Update Blade Templates](#phase-5)
+7. [PHASE 6: Build Admin UI](#phase-6)
+8. [Testing Checklist](#testing)
+
+---
+
+## <a name="overview"></a>🎯 Overview & Goals
+
+### What You're Building:
+- ✅ **Multi-role system** (One user = Headteacher + Teacher simultaneously)
+- ✅ **Granular permissions** (Remove any permission instantly, system adapts)
+- ✅ **School email domain** (username@asms.ac.ug with uniqueness)
+- ✅ **Force password change** (Default ASMS@2025, must change on first login)
+- ✅ **100% Database-driven** (All roles/permissions stored in DB, not code)
+- ✅ **Works with existing blades** (No file renames needed)
+
+### Database Tables You'll Have:
+```
+users                       (Your existing table + new fields)
+roles                       (Created by Spatie)
+permissions                 (Created by Spatie)
+model_has_roles            (User ↔ Role links)
+model_has_permissions      (User ↔ Direct Permission links)
+role_has_permissions       (Role ↔ Permission links)
+```
+
+---
+
+## <a name="phase-1"></a>📦 PHASE 1: Install Spatie & Database Setup
+
+### Step 1.1: Install Spatie Laravel Permission
+
+```bash
+# Install the package
+composer require spatie/laravel-permission
+
+# Publish migrations and config
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+```
+
+**What this creates:**
+- `config/permission.php` - Configuration file
+- `database/migrations/xxxx_create_permission_tables.php` - Database structure
+
+---
+
+### Step 1.2: Run Spatie Migrations
+
+```bash
+php artisan migrate
+```
+
+**Verify tables created:**
+```bash
+php artisan tinker
+>>> DB::select('SHOW TABLES');
+```
+
+**You should see these NEW tables:**
+- `roles`
+- `permissions`
+- `model_has_permissions`
+- `model_has_roles`
+- `role_has_permissions`
+
+---
+
+### Step 1.3: Update User Model
+
+**📄 File:** `app/Models/User.php`
+
+**Action:** Add `use HasRoles;` trait
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles; // ← ADD THIS LINE
+
+class User extends Authenticatable
+{
+    use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    use HasRoles; // ← ADD THIS LINE
+
+    // ... rest of your existing code stays the same
+}
+```
+
+**✅ That's it for basic Spatie setup!**
+
+---
+
+### Step 1.4: Register Spatie Middleware
+
+**📄 File:** `bootstrap/app.php`
+
+**Action:** Add middleware aliases
+
+```php
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // ← ADD THESE 3 LINES
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+```
+
+---
+
+## <a name="phase-2"></a>👤 PHASE 2: School Email & Password System
+
+### Step 2.1: Create Migration for Additional User Fields
+
+```bash
+php artisan make:migration add_school_system_fields_to_users_table
+```
+
+**📄 File:** `database/migrations/xxxx_add_school_system_fields_to_users_table.php`
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            // Password management
+            $table->boolean('must_change_password')->default(true)->after('password');
+            $table->timestamp('password_changed_at')->nullable()->after('must_change_password');
+
+            // School-specific fields
+            $table->string('staff_id')->unique()->nullable()->after('email');
+            $table->string('department')->nullable()->after('staff_id');
+            $table->string('phone')->nullable()->after('department');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn([
+                'must_change_password',
+                'password_changed_at',
+                'staff_id',
+                'department',
+                'phone',
+            ]);
+        });
+    }
+};
+```
+
+```bash
+php artisan migrate
+```
+
+---
+
+### Step 2.2: Add School Domain to Config
+
+**📄 File:** `.env`
+
+**Action:** Add this line at the bottom
+
+```env
+SCHOOL_DOMAIN=asms.ac.ug
+```
+
+**📄 File:** `config/app.php`
+
+**Action:** Add this to the config array (around line 200, after timezone)
+
+```php
+    /*
+    |--------------------------------------------------------------------------
+    | School Email Domain
+    |--------------------------------------------------------------------------
+    */
+    'school_domain' => env('SCHOOL_DOMAIN', 'asms.ac.ug'),
+```
+
+---
+
+### Step 2.3: Update User Model with School Features
+
+**📄 File:** `app/Models/User.php`
+
+**Action:** REPLACE entire file with this:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+
+class User extends Authenticatable
+{
+    use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    use HasRoles;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'staff_id',
+        'department',
+        'phone',
+        'is_active',
+        'must_change_password',
+        'password_changed_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
+    ];
+
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
+            'password_changed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Generate school email: ksamuel@asms.ac.ug
+     */
+    public static function generateSchoolEmail(string $name, ?string $staffId = null): string
+    {
+        $domain = config('app.school_domain', 'asms.ac.ug');
+
+        if ($staffId) {
+            $username = strtolower($staffId);
+        } else {
+            $parts = explode(' ', $name);
+            $firstName = strtolower($parts[0]);
+            $lastName = isset($parts[1]) ? strtolower($parts[1]) : '';
+            $username = $firstName . ($lastName ? '.' . $lastName : '');
+        }
+
+        $username = preg_replace('/[^a-z0-9.]/', '', $username);
+        $email = $username . '@' . $domain;
+
+        // Ensure uniqueness
+        $counter = 1;
+        while (self::where('email', $email)->exists()) {
+            $email = $username . $counter . '@' . $domain;
+            $counter++;
+        }
+
+        return $email;
+    }
+
+    /**
+     * Generate default password: ASMS@2025
+     */
+    public static function generateDefaultPassword(): string
+    {
+        return 'ASMS@' . date('Y');
+    }
+
+    /**
+     * Check if needs password change
+     */
+    public function needsPasswordChange(): bool
+    {
+        return $this->must_change_password === true;
+    }
+
+    /**
+     * Mark password as changed
+     */
+    public function markPasswordChanged(): void
+    {
+        $this->update([
+            'must_change_password' => false,
+            'password_changed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Scope for active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Get primary role name
+     */
+    public function getPrimaryRoleAttribute(): ?string
+    {
+        return $this->roles->first()?->name;
+    }
+}
+```
+
+---
+
+### Step 2.4: Create Force Password Change Middleware
+
+```bash
+php artisan make:middleware ForcePasswordChange
+```
+
+**📄 File:** `app/Http/Middleware/ForcePasswordChange.php`
+
+```php
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ForcePasswordChange
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        $excludedRoutes = [
+            'password.change',
+            'password.update',
+            'logout',
+            'two-factor.*',
+        ];
+
+        foreach ($excludedRoutes as $route) {
+            if ($request->routeIs($route)) {
+                return $next($request);
+            }
+        }
+
+        if (auth()->check() && auth()->user()->needsPasswordChange()) {
+            if (!$request->routeIs('password.change')) {
+                return redirect()->route('password.change')
+                    ->with('warning', 'You must change your password before continuing.');
+            }
+        }
+
+        return $next($request);
+    }
+}
+```
+
+---
+
+### Step 2.5: Register Force Password Change Middleware
+
+**📄 File:** `bootstrap/app.php`
+
+**Action:** Update the middleware section
+
+```php
+    ->withMiddleware(function (Middleware $middleware) {
+        // Spatie Permission
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
+
+        // ← ADD THIS: Force Password Change
+        $middleware->web(append: [
+            \App\Http\Middleware\ForcePasswordChange::class,
+        ]);
+    })
+```
+
+---
+
+### Step 2.6: Create Password Change Controller
+
+```bash
+php artisan make:controller PasswordChangeController
+```
+
+**📄 File:** `app/Http/Controllers/PasswordChangeController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
+
+class PasswordChangeController extends Controller
+{
+    public function update(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        $request->user()->markPasswordChanged();
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Password changed successfully!');
+    }
+}
+```
+
+---
+
+### Step 2.7: Add Password Change Routes
+
+**📄 File:** `routes/web.php`
+
+**Action:** Add these routes inside the auth middleware group
+
+```php
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // ← ADD THESE LINES
+    Route::get('/password/change', function () {
+        return view('auth.change-password');
+    })->name('password.change');
+
+    Route::post('/password/change', [App\Http\Controllers\PasswordChangeController::class, 'update'])
+        ->name('password.update');
+
+    // ... rest of your routes
+});
+```
+
+---
+
+### Step 2.8: Create Password Change View
+
+**📄 File:** `resources/views/auth/change-password.blade.php`
+
+**Action:** Create this NEW file
+
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Change Password') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6 sm:px-20 bg-white border-b border-gray-200">
+
+                    @if(auth()->user()->must_change_password)
+                        <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        <strong>Action Required:</strong> You must change your default password before accessing the system.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if(session('warning'))
+                        <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <p class="text-sm text-yellow-700">{{ session('warning') }}</p>
+                        </div>
+                    @endif
+
+                    @if(session('success'))
+                        <div class="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+                            <p class="text-sm text-green-700">{{ session('success') }}</p>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('password.update') }}">
+                        @csrf
+
+                        <div class="mb-4">
+                            <label for="current_password" class="block text-sm font-medium text-gray-700">
+                                Current Password
+                            </label>
+                            <input type="password" name="current_password" id="current_password" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('current_password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <p class="mt-1 text-sm text-gray-500">
+                                Your default password is: <strong>ASMS@{{ date('Y') }}</strong>
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="block text-sm font-medium text-gray-700">
+                                New Password
+                            </label>
+                            <input type="password" name="password" id="password" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            <p class="mt-1 text-sm text-gray-500">
+                                Must be at least 8 characters with uppercase, lowercase, numbers, and symbols.
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
+                                Confirm New Password
+                            </label>
+                            <input type="password" name="password_confirmation" id="password_confirmation" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="flex items-center justify-end">
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 transition">
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
+
+---
+
+## <a name="phase-3"></a>🎭 PHASE 3: Create Permissions & Roles (Database Seeders)
+
+### Step 3.1: Create Permission Seeder
+
+```bash
+php artisan make:seeder PermissionSeeder
+```
+
+**📄 File:** `database/seeders/PermissionSeeder.php`
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+class PermissionSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // ALL PERMISSIONS (stored in database)
+        $permissions = [
+            // Students Module
+            'students.view',
+            'students.view-detail',
+            'students.create',
+            'students.edit',
+            'students.delete',
+            'students.export',
+            'students.promote',
+
+            // Teachers Module
+            'teachers.view',
+            'teachers.view-detail',
+            'teachers.create',
+            'teachers.edit',
+            'teachers.delete',
+            'teachers.assign',
+
+            // Marks Module
+            'marks.view',
+            'marks.entry',
+            'marks.edit',
+            'marks.delete',
+            'marks.approve',
+            'marks.view-all',
+
+            // Reports Module
+            'reports.view',
+            'reports.generate',
+            'reports.print',
+            'reports.export',
+            'reports.analytics',
+
+            // Classes & Subjects
+            'classes.view',
+            'classes.manage',
+            'subjects.manage',
+
+            // System Module
+            'system.settings',
+            'system.users',
+            'system.roles',
+            'system.permissions',
+            'system.backup',
+            'system.logs',
+        ];
+
+        // Create all permissions in database
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        $this->createRoles();
+
+        $this->command->info('✅ All permissions created in database');
+        $this->command->info('✅ Total Permissions: ' . Permission::count());
+    }
+
+    private function createRoles(): void
+    {
+        // 1. Super Admin
+        $superAdmin = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $superAdmin->givePermissionTo(Permission::all());
+
+        // 2. Headteacher
+        $headteacher = Role::create(['name' => 'Headteacher', 'guard_name' => 'web']);
+        $headteacher->givePermissionTo([
+            'students.view', 'students.view-detail', 'students.create', 'students.edit',
+            'students.delete', 'students.export', 'students.promote',
+            'teachers.view', 'teachers.view-detail', 'teachers.create', 'teachers.edit',
+            'teachers.assign',
+            'reports.view', 'reports.generate', 'reports.print', 'reports.export',
+            'reports.analytics',
+            'classes.view', 'classes.manage', 'subjects.manage',
+        ]);
+
+        // 3. Teacher
+        $teacher = Role::create(['name' => 'Teacher', 'guard_name' => 'web']);
+        $teacher->givePermissionTo([
+            'students.view', 'students.view-detail',
+            'marks.view', 'marks.entry', 'marks.edit',
+            'reports.view', 'reports.print',
+        ]);
+
+        // 4. Admin Staff
+        $adminStaff = Role::create(['name' => 'Admin Staff', 'guard_name' => 'web']);
+        $adminStaff->givePermissionTo([
+            'students.view', 'students.view-detail', 'students.create', 'students.edit',
+            'students.export',
+            'teachers.view', 'teachers.view-detail', 'teachers.create', 'teachers.edit',
+            'classes.view', 'classes.manage', 'subjects.manage',
+        ]);
+
+        $this->command->info('✅ All roles created in database');
+        $this->command->info('✅ Total Roles: ' . Role::count());
+    }
+}
+```
+
+---
+
+### Step 3.2: Create Admin User Seeder
+
+```bash
+php artisan make:seeder AdminUserSeeder
+```
+
+**📄 File:** `database/seeders/AdminUserSeeder.php`
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class AdminUserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $defaultPassword = User::generateDefaultPassword(); // ASMS@2025
+
+        $this->command->info('');
+        $this->command->info('🔐 Default Password: ' . $defaultPassword);
+        $this->command->info('');
+
+        // 1. Super Admin
+        $admin = User::create([
+            'name' => 'System Administrator',
+            'email' => User::generateSchoolEmail('System Administrator', 'admin'),
+            'password' => Hash::make($defaultPassword),
+            'email_verified_at' => now(),
+            'staff_id' => 'ADMIN001',
+            'department' => 'Administration',
+            'is_active' => true,
+            'must_change_password' => false,
+            'password_changed_at' => now(),
+        ]);
+        $admin->assignRole('Super Admin');
+
+        $this->command->info("✅ Super Admin: {$admin->email} / {$defaultPassword}");
+
+        // 2. Headteacher (ALSO a Teacher - multi-role!)
+        $headteacher = User::create([
+            'name' => 'Kamugisha Samuel',
+            'email' => User::generateSchoolEmail('Kamugisha Samuel', 'ksamuel'),
+            'password' => Hash::make($defaultPassword),
+            'email_verified_at' => now(),
+            'staff_id' => 'HT001',
+            'department' => 'Administration',
+            'phone' => '+256700000001',
+            'is_active' => true,
+            'must_change_password' => true,
+        ]);
+        $headteacher->assignRole(['Headteacher', 'Teacher']); // Multi-role!
+
+        $this->command->info("✅ Headteacher+Teacher: {$headteacher->email} / {$defaultPassword} (must change)");
+
+        // 3. Teacher
+        $teacher = User::create([
+            'name' => 'Mary Nakato',
+            'email' => User::generateSchoolEmail('Mary Nakato', 'mnakato'),
+            'password' => Hash::make($defaultPassword),
+            'email_verified_at' => now(),
+            'staff_id' => 'TCH001',
+            'department' => 'Mathematics',
+            'phone' => '+256700000002',
+            'is_active' => true,
+            'must_change_password' => true,
+        ]);
+        $teacher->assignRole('Teacher');
+
+        $this->command->info("✅ Teacher: {$teacher->email} / {$defaultPassword} (must change)");
+
+        // 4. Admin Staff
+        $staff = User::create([
+            'name' => 'John Okello',
+            'email' => User::generateSchoolEmail('John Okello', 'jokello'),
+            'password' => Hash::make($defaultPassword),
+            'email_verified_at' => now(),
+            'staff_id' => 'ADM001',
+            'department' => 'Administration',
+            'phone' => '+256700000003',
+            'is_active' => true,
+            'must_change_password' => true,
+        ]);
+        $staff->assignRole('Admin Staff');
+
+        $this->command->info("✅ Admin Staff: {$staff->email} / {$defaultPassword} (must change)");
+        $this->command->info('');
+        $this->command->info('📧 All emails: username@asms.ac.ug');
+        $this->command->info('');
+    }
+}
+```
+
+---
+
+### Step 3.3: Update Database Seeder
+
+**📄 File:** `database/seeders/DatabaseSeeder.php`
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            PermissionSeeder::class,
+            AdminUserSeeder::class,
+        ]);
+    }
+}
+```
+
+---
+
+### Step 3.4: Run Seeders
+
+```bash
+# Run all seeders
+php artisan db:seed
+
+# Or if you want to reset everything
+php artisan migrate:fresh --seed
+```
+
+**Expected Output:**
+```
+✅ All permissions created in database
+✅ Total Permissions: 33
+✅ All roles created in database
+✅ Total Roles: 4
+
+🔐 Default Password: ASMS@2025
+
+✅ Super Admin: admin@asms.ac.ug / ASMS@2025
+✅ Headteacher+Teacher: ksamuel@asms.ac.ug / ASMS@2025 (must change)
+✅ Teacher: mnakato@asms.ac.ug / ASMS@2025 (must change)
+✅ Admin Staff: jokello@asms.ac.ug / ASMS@2025 (must change)
+
+📧 All emails: username@asms.ac.ug
+```
+
+---
+
+### Step 3.5: Verify Database
+
+```bash
+php artisan tinker
+```
+
+```php
+// Check roles
+>>> \Spatie\Permission\Models\Role::all()->pluck('name');
+// Should show: ["Super Admin", "Headteacher", "Teacher", "Admin Staff"]
+
+// Check permissions
+>>> \Spatie\Permission\Models\Permission::count();
+// Should show: 33
+
+// Check multi-role user
+>>> $user = \App\Models\User::where('email', 'ksamuel@asms.ac.ug')->first();
+>>> $user->roles->pluck('name');
+// Should show: ["Headteacher", "Teacher"]
+
+// Check user permissions
+>>> $user->getAllPermissions()->pluck('name');
+// Should show combined permissions from both roles
+
+// Test permission check
+>>> $user->can('marks.entry');
+// Should return: true (from Teacher role)
+
+>>> $user->can('students.delete');
+// Should return: true (from Headteacher role)
+```
+
+---
+
+## <a name="phase-4"></a>🛡️ PHASE 4: Protect Routes with Permissions
+
+### Step 4.1: Update Web Routes
+
+**📄 File:** `routes/web.php`
+
+**Action:** Add permission middleware to all routes
+
+```php
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\MarkController;
+use App\Http\Controllers\ReportController;
+
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+
+    // Dashboard (everyone can access)
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Password Change
+    Route::get('/password/change', function () {
+        return view('auth.change-password');
+    })->name('password.change');
+    Route::post('/password/change', [App\Http\Controllers\PasswordChangeController::class, 'update'])
+        ->name('password.update');
+
+    // ========================================
+    // STUDENTS MODULE - Protected by permissions
+    // ========================================
+    Route::middleware('permission:students.view')->group(function () {
+        Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    });
+
+    Route::get('/students/create', [StudentController::class, 'create'])
+        ->middleware('permission:students.create')
+        ->name('students.create');
+
+    Route::post('/students', [StudentController::class, 'store'])
+        ->middleware('permission:students.create');
+
+    Route::get('/students/{student}', [StudentController::class, 'show'])
+        ->middleware('permission:students.view-detail')
+        ->name('students.show');
+
+    Route::get('/students/{student}/edit', [StudentController::class, 'edit'])
+        ->middleware('permission:students.edit')
+        ->name('students.edit');
+
+    Route::put('/students/{student}', [StudentController::class, 'update'])
+        ->middleware('permission:students.edit');
+
+    Route::delete('/students/{student}', [StudentController::class, 'destroy'])
+        ->middleware('permission:students.delete');
+
+    // ========================================
+    // TEACHERS MODULE - Protected by permissions
+    // ========================================
+    Route::middleware('permission:teachers.view')->group(function () {
+        Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+    });
+
+    Route::get('/teachers/create', [TeacherController::class, 'create'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.create');
+
+    Route::post('/teachers', [TeacherController::class, 'store'])
+        ->middleware('permission:teachers.create');
+
+    Route::get('/teachers/{teacher}', [TeacherController::class, 'show'])
+        ->middleware('permission:teachers.view-detail')
+        ->name('teachers.show');
+
+    Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.edit');
+
+    Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])
+        ->middleware('permission:teachers.edit');
+
+    Route::delete('/teachers/{teacher}', [TeacherController::class, 'destroy'])
+        ->middleware('permission:teachers.delete');
+
+    // ========================================
+    // MARKS MODULE - Protected by permissions
+    // ========================================
+    Route::get('/marks/entry', [MarkController::class, 'entry'])
+        ->middleware('permission:marks.entry')
+        ->name('marks.entry');
+
+    Route::post('/marks', [MarkController::class, 'store'])
+        ->middleware('permission:marks.entry');
+
+    Route::put('/marks/{mark}', [MarkController::class, 'update'])
+        ->middleware('permission:marks.edit');
+
+    Route::delete('/marks/{mark}', [MarkController::class, 'destroy'])
+        ->middleware('permission:marks.delete');
+
+    // ========================================
+    // REPORTS MODULE - Protected by permissions
+    // ========================================
+    Route::middleware('permission:reports.view')->group(function () {
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    });
+
+    Route::get('/reports/card/{student}', [ReportController::class, 'card'])
+        ->middleware('permission:reports.generate')
+        ->name('reports.card');
+});
+```
+
+---
+
+## <a name="phase-5"></a>🎨 PHASE 5: Update Blade Templates with Permission Checks
+
+### Step 5.1: Update Sidebar Navigation
+
+**📄 File:** `resources/views/partials/sidebar.blade.php`
+
+**Action:** Add permission checks to menu items
+
+```blade
+<!-- Your existing sidebar structure -->
+<aside class="sidebar">
+
+    <!-- Dashboard (everyone can see) -->
+    <a href="{{ route('dashboard') }}" class="sidebar-link">
+        <i class="icon-dashboard"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <!-- Students (only if has permission) -->
+    @can('students.view')
+        <a href="{{ route('students.index') }}" class="sidebar-link">
+            <i class="icon-students"></i>
+            <span>Students</span>
+        </a>
+    @endcan
+
+    <!-- Teachers (only if has permission) -->
+    @can('teachers.view')
+        <a href="{{ route('teachers.index') }}" class="sidebar-link">
+            <i class="icon-teachers"></i>
+            <span>Teachers</span>
+        </a>
+    @endcan
+
+    <!-- Marks Entry (only if has permission) -->
+    @can('marks.entry')
+        <a href="{{ route('marks.entry') }}" class="sidebar-link">
+            <i class="icon-marks"></i>
+            <span>Enter Marks</span>
+        </a>
+    @endcan
+
+    <!-- Reports (only if has permission) -->
+    @can('reports.view')
+        <a href="{{ route('reports.index') }}" class="sidebar-link">
+            <i class="icon-reports"></i>
+            <span>Reports</span>
+        </a>
+    @endcan
+
+    <!-- System Settings (only super admin) -->
+    @canany(['system.settings', 'system.users', 'system.roles'])
+        <a href="{{ route('system.index') }}" class="sidebar-link">
+            <i class="icon-settings"></i>
+            <span>System</span>
+        </a>
+    @endcanany
+
+</aside>
+```
+
+---
+
+### Step 5.2: Update Student Index Page
+
+**📄 File:** `resources/views/modules/students/index.blade.php`
+
+**Action:** Add permission checks to action buttons
+
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <h2>Students</h2>
+    </x-slot>
+
+    <div class="container">
+
+        <!-- Action Buttons - Only show if has permission -->
+        <div class="action-bar">
+            @can('students.create')
+                <a href="{{ route('students.create') }}" class="btn btn-primary">
+                    Add New Student
+                </a>
+            @endcan
+
+            @can('students.export')
+                <button wire:click="export" class="btn btn-secondary">
+                    Export to Excel
+                </button>
+            @endcan
+        </div>
+
+        <!-- Students Table -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Class</th>
+                    @canany(['students.edit', 'students.delete', 'students.view-detail'])
+                        <th>Actions</th>
+                    @endcanany
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($students as $student)
+                <tr>
+                    <td>{{ $student->id }}</td>
+                    <td>{{ $student->name }}</td>
+                    <td>{{ $student->email }}</td>
+                    <td>{{ $student->class }}</td>
+
+                    @canany(['students.edit', 'students.delete', 'students.view-detail'])
+                    <td>
+                        @can('students.view-detail')
+                            <a href="{{ route('students.show', $student) }}" class="btn btn-sm btn-info">
+                                View
+                            </a>
+                        @endcan
+
+                        @can('students.edit')
+                            <a href="{{ route('students.edit', $student) }}" class="btn btn-sm btn-warning">
+                                Edit
+                            </a>
+                        @endcan
+
+                        @can('students.delete')
+                            <form action="{{ route('students.destroy', $student) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Are you sure?')">
+                                    Delete
+                                </button>
+                            </form>
+                        @endcan
+                    </td>
+                    @endcanany
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+    </div>
+</x-app-layout>
+```
+
+---
+
+### Step 5.3: Update Student Create Page
+
+**📄 File:** `resources/views/modules/students/create.blade.php`
+
+**Action:** Add permission check at the top
+
+```blade
+@can('students.create')
+    <x-app-layout>
+        <x-slot name="header">
+            <h2>Add New Student</h2>
+        </x-slot>
+
+        <div class="container">
+            <form action="{{ route('students.store') }}" method="POST">
+                @csrf
+
+                <!-- Your form fields here -->
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" class="form-control" required>
+                </div>
+
+                <!-- More form fields -->
+
+                <button type="submit" class="btn btn-primary">Create Student</button>
+            </form>
+        </div>
+    </x-app-layout>
+@else
+    <x-app-layout>
+        <div class="container">
+            <div class="alert alert-danger">
+                You do not have permission to create students.
+            </div>
+        </div>
+    </x-app-layout>
+@endcan
+```
+
+---
+
+### Step 5.4: Update Student Edit Page
+
+**📄 File:** `resources/views/modules/students/edit.blade.php`
+
+```blade
+@can('students.edit')
+    <x-app-layout>
+        <x-slot name="header">
+            <h2>Edit Student</h2>
+        </x-slot>
+
+        <div class="container">
+            <form action="{{ route('students.update', $student) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <!-- Your form fields with existing data -->
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" class="form-control" value="{{ $student->name }}" required>
+                </div>
+
+                <!-- More form fields -->
+
+                <button type="submit" class="btn btn-primary">Update Student</button>
+            </form>
+        </div>
+    </x-app-layout>
+@else
+    <x-app-layout>
+        <div class="container">
+            <div class="alert alert-danger">
+                You do not have permission to edit students.
+            </div>
+        </div>
+    </x-app-layout>
+@endcan
+```
+
+---
+
+### Step 5.5: Apply Same Pattern to Other Modules
+
+**Apply the same permission checks to:**
+
+1. **Teachers Module:**
+   - `resources/views/modules/teachers/index.blade.php` - Use `@can('teachers.view')`
+   - `resources/views/modules/teachers/create.blade.php` - Use `@can('teachers.create')`
+   - `resources/views/modules/teachers/edit.blade.php` - Use `@can('teachers.edit')`
+   - `resources/views/modules/teachers/show.blade.php` - Use `@can('teachers.view-detail')`
+
+2. **Marks Module:**
+   - `resources/views/modules/marks/entry.blade.php` - Use `@can('marks.entry')`
+
+3. **Reports Module:**
+   - `resources/views/modules/reports/index.blade.php` - Use `@can('reports.view')`
+   - `resources/views/modules/reports/templates/report-card.blade.php` - Use `@can('reports.generate')`
+
+---
+
+## <a name="phase-6"></a>⚙️ PHASE 6: Build Admin UI for Permission Management
+
+### Step 6.1: Create System Controller
+
+```bash
+php artisan make:controller SystemController
+```
+
+**📄 File:** `app/Http/Controllers/SystemController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
+class SystemController extends Controller
+{
+    public function index()
+    {
+        abort_unless(auth()->user()->can('system.users'), 403);
+
+        return view('modules.system.index');
+    }
+
+    public function users()
+    {
+        abort_unless(auth()->user()->can('system.users'), 403);
+
+        $users = User::with('roles')->get();
+        return view('modules.system.users', compact('users'));
+    }
+
+    public function roles()
+    {
+        abort_unless(auth()->user()->can('system.roles'), 403);
+
+        $roles = Role::with('permissions')->get();
+        $permissions = Permission::all()->groupBy(function($permission) {
+            return explode('.', $permission->name)[0]; // Group by module
+        });
+
+        return view('modules.system.roles', compact('roles', 'permissions'));
+    }
+
+    public function editUserPermissions(User $user)
+    {
+        abort_unless(auth()->user()->can('system.users'), 403);
+
+        $roles = Role::all();
+        $userRoles = $user->roles->pluck('id')->toArray();
+        $permissions = Permission::all()->groupBy(function($permission) {
+            return explode('.', $permission->name)[0];
+        });
+        $userPermissions = $user->getAllPermissions()->pluck('id')->toArray();
+
+        return view('modules.system.user-permissions', compact('user', 'roles', 'userRoles', 'permissions', 'userPermissions'));
+    }
+
+    public function updateUserPermissions(Request $request, User $user)
+    {
+        abort_unless(auth()->user()->can('system.users'), 403);
+
+        // Sync roles
+        $user->syncRoles($request->roles ?? []);
+
+        // Sync direct permissions
+        $user->syncPermissions($request->permissions ?? []);
+
+        // Clear cache
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        return redirect()->route('system.users')
+            ->with('success', 'User permissions updated successfully!');
+    }
+}
+```
+
+---
+
+### Step 6.2: Add System Routes
+
+**📄 File:** `routes/web.php`
+
+Add these routes inside the auth middleware group:
+
+```php
+    // ========================================
+    // SYSTEM MODULE
+    // ========================================
+    Route::middleware('permission:system.users')->group(function () {
+        Route::get('/system', [App\Http\Controllers\SystemController::class, 'index'])->name('system.index');
+        Route::get('/system/users', [App\Http\Controllers\SystemController::class, 'users'])->name('system.users');
+        Route::get('/system/users/{user}/permissions', [App\Http\Controllers\SystemController::class, 'editUserPermissions'])->name('system.user-permissions');
+        Route::post('/system/users/{user}/permissions', [App\Http\Controllers\SystemController::class, 'updateUserPermissions'])->name('system.update-user-permissions');
+    });
+
+    Route::middleware('permission:system.roles')->group(function () {
+        Route::get('/system/roles', [App\Http\Controllers\SystemController::class, 'roles'])->name('system.roles');
+    });
+```
+
+---
+
+### Step 6.3: Create System Index View
+
+**📄 File:** `resources/views/modules/system/index.blade.php`
+
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl">System Management</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                @can('system.users')
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">User Management</h3>
+                    <p class="text-gray-600 mb-4">Manage users, roles, and permissions</p>
+                    <a href="{{ route('system.users') }}" class="btn btn-primary">
+                        Manage Users
+                    </a>
+                </div>
+                @endcan
+
+                @can('system.roles')
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Roles & Permissions</h3>
+                    <p class="text-gray-600 mb-4">Configure system roles and permissions</p>
+                    <a href="{{ route('system.roles') }}" class="btn btn-primary">
+                        Manage Roles
+                    </a>
+                </div>
+                @endcan
+
+                @can('system.settings')
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">System Settings</h3>
+                    <p class="text-gray-600 mb-4">Configure system-wide settings</p>
+                    <a href="#" class="btn btn-primary">
+                        System Settings
+                    </a>
+                </div>
+                @endcan
+
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
+
+---
+
+### Step 6.4: Create Users Management View
+
+**📄 File:** `resources/views/modules/system/users.blade.php`
+
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl">User Management</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+            @if(session('success'))
+                <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+                    <p class="text-sm text-green-700">{{ session('success') }}</p>
+                </div>
+            @endif
+
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roles</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($users as $user)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $user->email }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $user->staff_id }}</td>
+                            <td class="px-6 py-4">
+                                @foreach($user->roles as $role)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $role->name }}
+                                    </span>
+                                @endforeach
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($user->is_active)
+                                    <span class="text-green-600">Active</span>
+                                @else
+                                    <span class="text-red-600">Inactive</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{{ route('system.user-permissions', $user) }}" class="text-indigo-600 hover:text-indigo-900">
+                                    Edit Permissions
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
+
+---
+
+### Step 6.5: Create User Permissions Edit View
+
+**📄 File:** `resources/views/modules/system/user-permissions.blade.php`
+
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl">Edit Permissions: {{ $user->name }}</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+
+                <form method="POST" action="{{ route('system.update-user-permissions', $user) }}">
+                    @csrf
+
+                    <!-- User Info -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold">User Information</h3>
+                        <p><strong>Name:</strong> {{ $user->name }}</p>
+                        <p><strong>Email:</strong> {{ $user->email }}</p>
+                        <p><strong>Staff ID:</strong> {{ $user->staff_id }}</p>
+                    </div>
+
+                    <hr class="my-6">
+
+                    <!-- Roles Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Assign Roles</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            User can have MULTIPLE roles. Permissions are combined from all roles.
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            @foreach($roles as $role)
+                            <label class="flex items-center">
+                                <input type="checkbox"
+                                       name="roles[]"
+                                       value="{{ $role->id }}"
+                                       {{ in_array($role->id, $userRoles) ? 'checked' : '' }}
+                                       class="mr-2">
+                                <span class="font-medium">{{ $role->name }}</span>
+                                <span class="ml-2 text-xs text-gray-500">
+                                    ({{ $role->permissions->count() }} permissions)
+                                </span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <hr class="my-6">
+
+                    <!-- Direct Permissions Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Direct Permissions</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Grant specific permissions to this user (in addition to role permissions)
+                        </p>
+
+                        @foreach($permissions as $module => $modulePermissions)
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 capitalize">{{ $module }} Module</h4>
+                            <div class="grid grid-cols-3 gap-2 ml-4">
+                                @foreach($modulePermissions as $permission)
+                                <label class="flex items-center">
+                                    <input type="checkbox"
+                                           name="permissions[]"
+                                           value="{{ $permission->id }}"
+                                           {{ in_array($permission->id, $userPermissions) ? 'checked' : '' }}
+                                           class="mr-2">
+                                    <span class="text-sm">{{ str_replace($module.'.', '', $permission->name) }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center justify-end mt-6">
+                        <a href="{{ route('system.users') }}" class="mr-4 text-gray-600 hover:text-gray-900">
+                            Cancel
+                        </a>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                            Update Permissions
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</x-app-layout>
+```
+
+---
+
+## <a name="testing"></a>✅ Testing Checklist
+
+### Test 1: Database Verification
+
+```bash
+php artisan tinker
+
+# Test 1: Check roles exist
+>>> \Spatie\Permission\Models\Role::pluck('name');
+# Expected: ["Super Admin", "Headteacher", "Teacher", "Admin Staff"]
+
+# Test 2: Check permissions count
+>>> \Spatie\Permission\Models\Permission::count();
+# Expected: 33
+
+# Test 3: Check multi-role user
+>>> $user = \App\Models\User::where('email', 'ksamuel@asms.ac.ug')->first();
+>>> $user->roles->pluck('name');
+# Expected: ["Headteacher", "Teacher"]
+
+# Test 4: Check combined permissions
+>>> $user->can('marks.entry');
+# Expected: true (from Teacher role)
+>>> $user->can('students.delete');
+# Expected: true (from Headteacher role)
+
+# Test 5: Check email uniqueness
+>>> \App\Models\User::where('email', 'ksamuel@asms.ac.ug')->count();
+# Expected: 1 (only one user with this email)
+```
+
+---
+
+### Test 2: Login Flow
+
+1. **Test Super Admin (no password change required):**
+   ```
+   Email: admin@asms.ac.ug
+   Password: ASMS@2025
+   Expected: Direct access to dashboard
+   ```
+
+2. **Test Regular User (password change required):**
+   ```
+   Email: ksamuel@asms.ac.ug
+   Password: ASMS@2025
+   Expected: Redirected to /password/change
+   Action: Change password
+   Expected: After change, access to dashboard
+   ```
+
+---
+
+### Test 3: Permission Checks
+
+1. **Login as Teacher (mnakato@asms.ac.ug / ASMS@2025)**
+   - ✅ Can see Students menu
+   - ✅ Can see Marks Entry menu
+   - ✅ Can see Reports menu
+   - ❌ Cannot see System menu
+   - ✅ Can enter marks
+   - ❌ Cannot delete students
+
+2. **Login as Headteacher (ksamuel@asms.ac.ug)**
+   - ✅ Can see all menus
+   - ✅ Can enter marks (Teacher role)
+   - ✅ Can delete students (Headteacher role)
+   - ✅ Has combined permissions from BOTH roles
+
+3. **Test Permission Removal:**
+   ```
+   1. Login as Super Admin
+   2. Go to System > Users
+   3. Click "Edit Permissions" on Teacher
+   4. Uncheck "marks.entry" permission
+   5. Save
+   6. Login as that Teacher
+   7. Expected: Marks Entry menu disappears
+   ```
+
+---
+
+### Test 4: Email System
+
+```bash
+php artisan tinker
+
+# Test email generation
+>>> \App\Models\User::generateSchoolEmail('Test User', 'tuser');
+# Expected: tuser@asms.ac.ug
+
+# Test uniqueness handling
+>>> \App\Models\User::generateSchoolEmail('John Doe');
+# Expected: john.doe@asms.ac.ug (or john.doe1 if exists)
+
+# Test default password
+>>> \App\Models\User::generateDefaultPassword();
+# Expected: ASMS@2025 (current year)
+```
+
+---
+
+## 📚 Quick Reference Commands
+
+```bash
+# Clear permission cache
+php artisan cache:forget spatie.permission.cache
+
+# Reset and reseed database
+php artisan migrate:fresh --seed
+
+# Check user permissions
+php artisan tinker
+>>> auth()->user()->getAllPermissions()->pluck('name');
+
+# Give user a role
+>>> $user = \App\Models\User::find(1);
+>>> $user->assignRole('Teacher');
+
+# Give user direct permission
+>>> $user->givePermissionTo('marks.entry');
+
+# Remove permission
+>>> $user->revokePermissionTo('marks.entry');
+
+# Check if user has permission
+>>> $user->can('students.view');
+```
+
+---
+
+## 🎯 Summary: What You Achieved
+
+### ✅ Database-Driven Permission System
+- All roles stored in `roles` table
+- All permissions stored in `permissions` table
+- All user-role links in `model_has_roles` table
+- Changes take effect immediately (after cache clear)
+
+### ✅ Multi-Role Support
+- One user can have MULTIPLE roles
+- Permissions are COMBINED from all roles
+- Example: Headteacher + Teacher = Both sets of permissions
+
+### ✅ School Email System
+- Format: username@asms.ac.ug
+- Guaranteed uniqueness (database + validation)
+- Auto-generated from name or staff ID
+
+### ✅ Force Password Change
+- Default password: ASMS@2025
+- Users must change on first login
+- Cannot access system until changed
+
+### ✅ Granular Permission Control
+- Remove any permission instantly
+- System adapts automatically
+- No code changes needed
+- Blade templates hide/show based on permissions
+
+### ✅ Admin UI
+- Manage users through web interface
+- Assign/remove roles through web interface
+- Grant/revoke permissions through web interface
+- No database access needed
+
+---
+
+## 🆘 Troubleshooting
+
+**Problem:** Permission denied errors
+**Solution:**
+```bash
+php artisan cache:forget spatie.permission.cache
+```
+
+**Problem:** User can't login after password change
+**Solution:** Check `must_change_password` field is set to false
+
+**Problem:** Sidebar menu not hiding
+**Solution:** Check blade template has `@can()` directives
+
+**Problem:** Duplicate email errors
+**Solution:** Check `email` column has
