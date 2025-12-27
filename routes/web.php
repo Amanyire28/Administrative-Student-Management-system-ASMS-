@@ -9,11 +9,17 @@ use App\Http\Controllers\ClassCategoryController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PasswordChangeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\SchoolSettingController;
+use App\Models\Teacher;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +32,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/index', function () {
+    return view('index');
+});
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
@@ -78,6 +87,19 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->middleware('permission:students.edit')
         ->name('students.edit');
 
+
+
+
+
+        Route::post('/teachers/{teacher}/complete-creation', [TeacherController::class, 'completeTeacherCreation'])
+    ->name('teachers.complete-creation')
+    ->middleware(['auth:sanctum', 'verified', 'permission:teachers.create']);
+Route::post('/teachers/{teacher}/update-assignments', [TeacherController::class, 'updateAssignments'])
+    ->name('teachers.update-assignments');
+
+
+
+
     Route::put('students/{student}', [StudentController::class, 'update'])
         ->middleware('permission:students.edit')
         ->name('students.update');
@@ -97,10 +119,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->middleware('permission:teachers.create')
         ->name('teachers.create');
 
-    Route::post('teachers', [TeacherController::class, 'store'])
-        ->middleware('permission:teachers.create')
-        ->name('teachers.store');
-
     Route::get('teachers/{teacher}', [TeacherController::class, 'show'])
         ->middleware('permission:teachers.view-detail')
         ->name('teachers.show');
@@ -109,16 +127,91 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->middleware('permission:teachers.edit')
         ->name('teachers.edit');
 
-    Route::put('teachers/{teacher}', [TeacherController::class, 'update'])
-        ->middleware('permission:teachers.edit')
-        ->name('teachers.update');
-
     Route::delete('teachers/{teacher}', [TeacherController::class, 'destroy'])
         ->middleware('permission:teachers.delete')
         ->name('teachers.destroy');
 
+    // Teacher Statistics
+    Route::get('teachers/statistics', [TeacherController::class, 'statistics'])
+        ->middleware('permission:teachers.view')
+        ->name('teachers.statistics');
+
     // ========================================
-    // CLASS CATEGORY MANAGEMENT (from julius2)
+    // TEACHER SPA-LIKE ROUTES (AJAX)
+    // ========================================
+
+    // Create Teacher (Multi-step form)
+    Route::post('teachers/store-basic', [TeacherController::class, 'storeBasicInfo'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.store.basic');
+
+    Route::post('teachers/store-additional', [TeacherController::class, 'storeAdditionalDetails'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.store.additional');
+
+    Route::post('teachers/store-classes', [TeacherController::class, 'storeClassAssignments'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.store.classes');
+
+    Route::post('teachers/store-subjects', [TeacherController::class, 'storeSubjectAssignments'])
+        ->middleware('permission:teachers.create')
+        ->name('teachers.store.subjects');
+
+    // Update Teacher (Multi-section form)
+    Route::post('teachers/{teacher}/update-basic', [TeacherController::class, 'updateBasicInfo'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.update.basic');
+
+    Route::post('teachers/{teacher}/update-additional', [TeacherController::class, 'updateAdditionalDetails'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.update.additional');
+
+    Route::post('teachers/{teacher}/assign-classes', [TeacherController::class, 'assignClasses'])
+        ->middleware('permission:teachers.assign')
+        ->name('teachers.assign.classes');
+
+    Route::post('teachers/{teacher}/assign-subjects', [TeacherController::class, 'assignSubjects'])
+        ->middleware('permission:teachers.assign')
+        ->name('teachers.assign.subjects');
+
+    // Remove assignments
+    Route::post('teachers/{teacher}/remove-class', [TeacherController::class, 'removeClassAssignment'])
+        ->middleware('permission:teachers.assign')
+        ->name('teachers.remove.class');
+
+    Route::post('teachers/{teacher}/remove-subject', [TeacherController::class, 'removeSubjectAssignment'])
+        ->middleware('permission:teachers.assign')
+        ->name('teachers.remove.subject');
+
+    // Other teacher operations
+    Route::post('teachers/{teacher}/update-status', [TeacherController::class, 'updateStatus'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.update.status');
+
+    Route::post('teachers/{teacher}/reset-password', [TeacherController::class, 'resetPassword'])
+        ->middleware('permission:teachers.reset_password')
+        ->name('teachers.reset.password');
+
+    Route::delete('teachers/{teacher}/delete-photo', [TeacherController::class, 'deletePhoto'])
+        ->middleware('permission:teachers.edit')
+        ->name('teachers.delete.photo');
+
+    // Search and timetable
+    Route::get('teachers/search', [TeacherController::class, 'search'])
+        ->middleware('permission:teachers.view')
+        ->name('teachers.search');
+
+    Route::get('teachers/{teacher}/timetable', [TeacherController::class, 'getTimetable'])
+        ->middleware('permission:teachers.view-detail')
+        ->name('teachers.timetable');
+
+
+
+
+
+// Route::put('teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
+    // ========================================
+    // CLASS CATEGORY MANAGEMENT
     // ========================================
     Route::middleware('permission:classes.view')->group(function () {
         Route::get('class-categories', [ClassCategoryController::class, 'index'])->name('class-categories.index');
@@ -149,7 +242,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->name('class-categories.destroy');
 
     // ========================================
-    // CLASS LEVEL MANAGEMENT (from julius2)
+    // CLASS LEVEL MANAGEMENT
     // ========================================
     Route::middleware('permission:classes.view')->group(function () {
         Route::get('class-levels', [ClassLevelController::class, 'index'])->name('class-levels.index');
@@ -180,7 +273,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->name('class-levels.destroy');
 
     // ========================================
-    // STREAM MANAGEMENT (from julius2)
+    // STREAM MANAGEMENT
     // ========================================
     Route::middleware('permission:classes.view')->group(function () {
         Route::get('streams', [StreamController::class, 'index'])->name('streams.index');
@@ -340,8 +433,13 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         Route::get('system/roles', [SystemController::class, 'roles'])->name('system.roles');
     });
 
+    Route::middleware('permission:system.settings')->group(function () {
+        Route::get('system/settings', [SystemController::class, 'settings'])->name('system.settings');
+        Route::post('system/settings', [SystemController::class, 'updateSettings'])->name('system.settings.update');
+    });
+
     // ========================================
-    // SCHOOL SETTINGS - Protected (from HEAD)
+    // SCHOOL SETTINGS - Protected
     // ========================================
     Route::middleware('permission:system.settings')->group(function () {
         // Main settings page
@@ -372,4 +470,183 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
             ->name('settings.delete-signature');
     });
 
+});
+
+// Notification Routes
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('notifications', [NotificationController::class, 'clearAll'])->name('notifications.clearAll');
+    Route::post('notifications/preferences', [NotificationController::class, 'updatePreferences'])->name('notifications.preferences.update');
+    Route::get('notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount');
+    Route::get('notifications/latest', [NotificationController::class, 'getLatest'])->name('notifications.latest');
+});
+
+// Custom Profile Routes (REPLACING Jetstream)
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Main profile page
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Force password change
+    Route::get('/profile/force-password-change', [ProfileController::class, 'forcePasswordChange'])
+        ->name('profile.force-password-change');
+    Route::post('/profile/force-password-change', [ProfileController::class, 'updateForcedPassword'])
+        ->name('profile.update-forced-password');
+
+    // Additional profile pages (optional)
+    Route::get('/profile/activity', [ProfileController::class, 'activity'])->name('profile.activity');
+    Route::get('/profile/notifications', [ProfileController::class, 'notifications'])->name('profile.notifications');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.update-notifications');
+});
+
+// Add middleware to redirect Jetstream profile URLs to our custom ones
+Route::get('/user/profile', function () {
+    return redirect()->route('profile.edit');
+})->middleware(['auth:sanctum', 'verified']);
+
+Route::get('/user/profile-information', function () {
+    return redirect()->route('profile.edit');
+})->middleware(['auth:sanctum', 'verified']);
+
+
+
+
+Route::get('/debug-teacher-assignments/{teacherId}', function ($teacherId) {
+    $teacher = Teacher::with([
+        'classes' => function ($query) {
+            $query->withPivot('is_class_teacher');
+        },
+        'subjects'
+    ])->findOrFail($teacherId);
+
+    // Get assignment data exactly as the notification will see it
+    $assignedClasses = [];
+    foreach ($teacher->classes as $class) {
+        $assignedClasses[] = [
+            'class' => $class,
+            'is_class_teacher' => $class->pivot->is_class_teacher ?? false
+        ];
+    }
+
+    $assignedSubjects = $teacher->subjects->toArray();
+
+    // Create a notification to see what data it gets
+    $notification = new \App\Notifications\TeacherNotification($teacher, 'created', [
+        'assigned_classes' => $assignedClasses,
+        'assigned_subjects' => $assignedSubjects,
+    ]);
+
+    // Get database data (what will be saved)
+    $dbData = $notification->toDatabase(auth()->user());
+
+    return response()->json([
+        'teacher' => [
+            'id' => $teacher->id,
+            'name' => $teacher->full_name,
+            'classes_count' => $teacher->classes->count(),
+            'subjects_count' => $teacher->subjects->count(),
+        ],
+        'assignments' => [
+            'classes' => $assignedClasses,
+            'subjects' => $assignedSubjects,
+        ],
+        'notification_data' => [
+            'message' => $dbData['message'] ?? 'No message',
+            'description' => $dbData['description'] ?? 'No description',
+            'action_url' => $dbData['action_url'] ?? 'No URL',
+        ]
+    ]);
+});
+
+
+
+Route::get('/debug-database-tables', function () {
+    $tables = ['class_teacher', 'subject_teacher', 'teacher_subject'];
+
+    $results = [];
+    foreach ($tables as $table) {
+        if (Schema::hasTable($table)) {
+            $results[$table] = [
+                'exists' => true,
+                'columns' => Schema::getColumnListing($table),
+                'row_count' => DB::table($table)->count(),
+                'sample_rows' => DB::table($table)->limit(3)->get(),
+            ];
+        } else {
+            $results[$table] = ['exists' => false];
+        }
+    }
+
+    return response()->json($results);
+});
+
+
+
+Route::get('/debug-teacher-error/{teacherId}', function ($teacherId) {
+    try {
+        $teacher = Teacher::with([
+            'classes' => function ($q) {
+                $q->withPivot('is_class_teacher');
+            },
+            'subjects'
+        ])->findOrFail($teacherId);
+
+        // Check what happens when we access employee_id
+        Log::info('Debug - Teacher employee_id access:', [
+            'employee_id_exists' => isset($teacher->employee_id),
+            'employee_id_value' => $teacher->employee_id ?? 'NULL',
+            'teacher_array' => $teacher->toArray(),
+        ]);
+
+        // Create notification and see what breaks
+        $assignedClasses = [];
+        foreach ($teacher->classes as $class) {
+            $assignedClasses[] = [
+                'class' => $class,
+                'is_class_teacher' => $class->pivot->is_class_teacher ?? false
+            ];
+        }
+
+        $assignedSubjects = $teacher->subjects->all();
+
+        $notification = new \App\Notifications\TeacherNotification($teacher, 'created', [
+            'assigned_classes' => $assignedClasses,
+            'assigned_subjects' => $assignedSubjects,
+        ]);
+
+        // Try to access the problematic method
+        $method = new ReflectionMethod($notification, 'buildMessage');
+        $method->setAccessible(true);
+
+        $teacherName = $teacher->full_name;
+        $employeeId = $teacher->employee_id;
+
+        return response()->json([
+            'success' => true,
+            'debug_info' => [
+                'teacher' => [
+                    'id' => $teacher->id,
+                    'full_name' => $teacher->full_name,
+                    'employee_id' => $teacher->employee_id,
+                    'employee_id_type' => gettype($teacher->employee_id),
+                ],
+                'notification_test' => [
+                    'can_access_employee_id' => !empty($teacher->employee_id),
+                    'employee_id_for_message' => $employeeId,
+                    'message_would_be' => "New teacher: {$teacherName} ({$employeeId})",
+                ]
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile(),
+        ], 500);
+    }
 });

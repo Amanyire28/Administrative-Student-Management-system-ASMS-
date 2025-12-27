@@ -332,318 +332,481 @@
 
     <!-- Alpine.js Component Definitions -->
 <script>
-     document.addEventListener('alpine:init', () => {
-         // School Profile Settings Component
-         Alpine.data('schoolProfileSettings', () => ({
-             activeTab: 'basic',
+    document.addEventListener('alpine:init', () => {
+        // School Profile Settings Component
+        Alpine.data('schoolProfileSettings', () => ({
+            activeTab: 'basic',
 
-             submitForm(event) {
-                 const form = event.target;
-                 const formData = new FormData(form);
-                 const action = form.getAttribute('action');
-                 const method = form.getAttribute('method') || 'POST';
+            submitForm(event) {
+                const form = event.target;
+                const formData = new FormData(form);
+                const action = form.getAttribute('action');
+                const method = form.getAttribute('method') || 'POST';
 
-                 // Get CSRF token
-                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                // Get CSRF token
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                 if (window.router && window.router.showLoading) {
-                     window.router.showLoading();
-                 }
-
-                 fetch(action, {
-                     method: method,
-                     body: formData,
-                     headers: {
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Accept': 'application/json',
-                         'X-CSRF-TOKEN': token,
-                         'Cache-Control': 'no-cache, no-store, max-age=0',
-                         'Pragma': 'no-cache'
-                     },
-                     cache: 'no-store',
-                     credentials: 'same-origin'
-                 })
-                 .then(response => {
-                     // Check content type before parsing JSON
-                     const contentType = response.headers.get('content-type');
-                     if (contentType && contentType.includes('application/json')) {
-                         return response.json();
-                     } else {
-                         // If not JSON, reload page
-                         window.location.reload();
-                         return { success: true };
-                     }
-                 })
-                 .then(data => {
-                     if (data && data.success) {
-                         // Show success message if router has showAlert
-                         if (window.router && window.router.showAlert) {
-                             window.router.showAlert(data.message || 'Saved successfully!', 'success');
-                         }
-                         // Small delay before reload to show message
-                         setTimeout(() => window.location.reload(), 1000);
-                     } else if (data && data.errors) {
-                         // Show validation errors
-                         let errorMsg = 'Validation errors:\n';
-                         for (const [field, errors] of Object.entries(data.errors)) {
-                             errorMsg += `• ${errors.join(', ')}\n`;
-                         }
-                         alert(errorMsg);
-                     } else {
-                         throw new Error(data?.message || 'Error saving!');
-                     }
-                 })
-                 .catch(error => {
-                     console.error('Error:', error);
-                     if (window.router && window.router.hideLoading) {
-                         window.router.hideLoading();
-                     }
-                     alert('Error: ' + error.message);
-                 });
-             }
-         }));
-
-         // Sidebar Data Component
-         Alpine.data('sidebarData', () => ({
-    dropdowns: {
-        students: false,
-        teachers: false,
-        marks: false,
-        reports: false,
-        system: false,
-         classes: false
-    },
-    sidebarCollapsed: false,
-    currentPath: window.location.pathname,
-
-    init() {
-        // Initialize collapsed state from localStorage
-        try {
-            this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-
-            // Load saved dropdown states from localStorage
-            const savedDropdowns = localStorage.getItem('sidebarDropdowns');
-            if (savedDropdowns) {
-                try {
-                    const parsed = JSON.parse(savedDropdowns);
-                    Object.keys(this.dropdowns).forEach(key => {
-                        if (parsed[key] !== undefined) {
-                            this.dropdowns[key] = parsed[key];
-                        }
-                    });
-                } catch (e) {
-                    console.warn('Could not parse saved dropdowns:', e);
+                if (window.router && window.router.showLoading) {
+                    window.router.showLoading();
                 }
-            }
 
-            this.applySidebarState();
-        } catch (e) {
-            console.warn('Could not read sidebar state:', e);
-            this.sidebarCollapsed = false;
-        }
-
-        // Set initial dropdown states based on current URL
-        this.updateDropdownsFromURL(this.currentPath);
-
-        // Listen for SPA navigation
-        window.addEventListener('spa:navigated', (e) => {
-            this.currentPath = e.detail.path || window.location.pathname;
-            this.updateDropdownsFromURL(this.currentPath);
-        });
-
-        // Listen for sidebar toggle from navbar
-        document.addEventListener('toggle-sidebar', () => {
-            this.toggleSidebar();
-        });
-
-        // REMOVED: The global click listener that closes dropdowns when clicking outside
-        // This is what was causing dropdowns to close when clicking outside sidebar
-        // document.addEventListener('click', (e) => {
-        //     if (!this.$el.contains(e.target)) {
-        //         this.closeAllDropdowns();
-        //     }
-        // });
-
-        // Instead, only close other dropdowns when opening a new one
-        // And persist the state
-    },
-
-    updateDropdownsFromURL(path) {
-        // Don't close all dropdowns automatically - keep current state
-        // Only update based on URL if needed
-
-        // If we're already on a page that should have a dropdown open, ensure it's open
-        if (!this.sidebarCollapsed) {
-            const urlBasedState = {
-                students: path.startsWith('/admin/students'),
-            teachers: path.startsWith('/admin/teachers'),
-            marks: path.startsWith('/admin/marks'),
-            reports: path.startsWith('/admin/report-card'),
-            system: path.startsWith('/admin/system'),
-            classes: path.startsWith('/admin/classes') ||
-                    path.startsWith('/admin/class-levels') ||
-                    path.startsWith('/admin/streams') ||
-                    path.startsWith('/admin/class-categories')
-            };
-
-            // Merge URL-based state with current state
-            Object.keys(this.dropdowns).forEach(key => {
-                // Only update if URL suggests this should be open
-                if (urlBasedState[key]) {
-                    this.dropdowns[key] = true;
-                }
-            });
-        }
-
-        this.saveDropdownState();
-    },
-
-    toggleDropdown(name, event) {
-    if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
-
-    // Toggle the clicked dropdown
-    this.dropdowns[name] = !this.dropdowns[name];
-
-    // If opening a dropdown, close all others
-    if (this.dropdowns[name]) {
-        Object.keys(this.dropdowns).forEach(key => {
-            if (key !== name) {
-                this.dropdowns[key] = false;
-            }
-        });
-    }
-
-    // Save state to localStorage
-    this.saveDropdownState();
-},
-
-    closeAllDropdowns() {
-        // This method is available but won't be called automatically
-        Object.keys(this.dropdowns).forEach(key => {
-            this.dropdowns[key] = false;
-        });
-        this.saveDropdownState();
-    },
-
-    saveDropdownState() {
-        try {
-            localStorage.setItem('sidebarDropdowns', JSON.stringify(this.dropdowns));
-        } catch (e) {
-            console.warn('Could not save dropdown state:', e);
-        }
-    },
-
-    handleLinkClick(event) {
-        // When clicking a link inside dropdown, keep the dropdown open
-        // This prevents dropdown from closing when navigating
-        if (event) {
-            event.stopPropagation();
-        }
-
-        // Find which dropdown this link belongs to
-        const linkElement = event?.target?.closest('a') || event?.target;
-        if (linkElement) {
-            const href = linkElement.getAttribute('href');
-            if (href) {
-                // Determine which dropdown should stay open
-                if (href.startsWith('/admin/students')) {
-                    this.dropdowns.students = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/teachers')) {
-                    this.dropdowns.teachers = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/marks')) {
-                    this.dropdowns.marks = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/report-card')) {
-                    this.dropdowns.reports = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/system')) {
-                    this.dropdowns.system = true;
-                    this.saveDropdownState();
-                } } else if (href.startsWith('/admin/classes') ||
-                      href.startsWith('/admin/class-levels') ||
-                      href.startsWith('/admin/streams') ||
-                      href.startsWith('/admin/class-categories')) {
-                this.dropdowns.classes = true;  // ADD THIS
-                this.saveDropdownState();
-            }
-        }
-
-        // Let SPA router handle navigation
-        // Dropdown will stay open due to saved state
-    },
-
-    isActive(path) {
-        if (!path || path === '#') return false;
-        return this.currentPath === path || this.currentPath.startsWith(path + '/');
-    },
-
-    isExactActive(path) {
-        return this.currentPath === path;
-    },
-
-    toggleSidebar() {
-        this.sidebarCollapsed = !this.sidebarCollapsed;
-
-        try {
-            localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
-        } catch (e) {
-            console.warn('Could not save sidebar state:', e);
-        }
-
-        this.applySidebarState();
-
-        // Close all dropdowns when collapsing (optional)
-        if (this.sidebarCollapsed) {
-            this.closeAllDropdowns();
-        } else {
-            // Restore dropdown states when expanding
-            this.restoreDropdownStates();
-        }
-    },
-
-    restoreDropdownStates() {
-        try {
-            const savedDropdowns = localStorage.getItem('sidebarDropdowns');
-            if (savedDropdowns) {
-                const parsed = JSON.parse(savedDropdowns);
-                Object.keys(this.dropdowns).forEach(key => {
-                    if (parsed[key] !== undefined) {
-                        this.dropdowns[key] = parsed[key];
+                fetch(action, {
+                    method: method,
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Cache-Control': 'no-cache, no-store, max-age=0',
+                        'Pragma': 'no-cache'
+                    },
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    // Check content type before parsing JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // If not JSON, reload page
+                        window.location.reload();
+                        return { success: true };
                     }
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        // Show success message if router has showAlert
+                        if (window.router && window.router.showAlert) {
+                            window.router.showAlert(data.message || 'Saved successfully!', 'success');
+                        }
+                        // Small delay before reload to show message
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else if (data && data.errors) {
+                        // Show validation errors
+                        let errorMsg = 'Validation errors:\n';
+                        for (const [field, errors] of Object.entries(data.errors)) {
+                            errorMsg += `• ${errors.join(', ')}\n`;
+                        }
+                        alert(errorMsg);
+                    } else {
+                        throw new Error(data?.message || 'Error saving!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (window.router && window.router.hideLoading) {
+                        window.router.hideLoading();
+                    }
+                    alert('Error: ' + error.message);
                 });
             }
-        } catch (e) {
-            console.warn('Could not restore dropdown states:', e);
-        }
-    },
+        }));
 
-    applySidebarState() {
-        const sidebar = document.querySelector('.sidebar');
-        const sidebarArea = document.querySelector('.sidebar-area');
-        const mainContent = document.querySelector('.main-content-area');
-        const toggleIcon = document.querySelector('#sidebarToggle i');
+        // Notifications Component
+        Alpine.data('notifications', () => ({
+            notifications: [],
+            unreadCount: 0,
+            loading: true,
 
-        if (this.sidebarCollapsed) {
-            sidebar?.classList.add('collapsed');
-            sidebarArea?.classList.add('collapsed');
-            mainContent?.classList.add('collapsed');
-            toggleIcon?.classList.remove('fa-chevron-left');
-            toggleIcon?.classList.add('fa-chevron-right');
-        } else {
-            sidebar?.classList.remove('collapsed');
-            sidebarArea?.classList.remove('collapsed');
-            mainContent?.classList.remove('collapsed');
-            toggleIcon?.classList.remove('fa-chevron-right');
-            toggleIcon?.classList.add('fa-chevron-left');
-        }
-    }
-}));
-     });
+            init() {
+                this.loadNotifications();
+                this.loadUnreadCount();
+
+                // Auto-refresh every 30 seconds
+                setInterval(() => {
+                    this.loadUnreadCount();
+                }, 30000);
+            },
+
+            loadNotifications() {
+                this.loading = true;
+                fetch('{{ route("notifications.latest") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.notifications = data.notifications;
+                        this.loading = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading notifications:', error);
+                        this.loading = false;
+                    });
+            },
+
+            loadUnreadCount() {
+                fetch('{{ route("notifications.unreadCount") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.unreadCount = data.count;
+                    })
+                    .catch(error => {
+                        console.error('Error loading unread count:', error);
+                    });
+            },
+
+            markAsRead(id) {
+                fetch('{{ route("notifications.markAsRead", '') }}/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update local state
+                        const notification = this.notifications.find(n => n.id === id);
+                        if (notification) {
+                            notification.read_at = new Date().toISOString();
+                        }
+                        this.loadUnreadCount();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error marking as read:', error);
+                });
+            },
+
+            markAllAsRead() {
+                fetch('{{ route("notifications.markAllAsRead") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Mark all as read locally
+                        this.notifications.forEach(notification => {
+                            notification.read_at = new Date().toISOString();
+                        });
+                        this.loadUnreadCount();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error marking all as read:', error);
+                });
+            },
+
+            deleteNotification(id) {
+                if (!confirm('Delete this notification?')) return;
+
+                fetch('{{ route("notifications.destroy", '') }}/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove from local array
+                        this.notifications = this.notifications.filter(n => n.id !== id);
+                        this.loadUnreadCount();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting notification:', error);
+                });
+            },
+
+            clearAll() {
+                if (!confirm('Clear all notifications? This action cannot be undone.')) return;
+
+                fetch('{{ route("notifications.clearAll") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.notifications = [];
+                        this.loadUnreadCount();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing all notifications:', error);
+                });
+            }
+        }));
+
+        // Sidebar Data Component
+        Alpine.data('sidebarData', () => ({
+            dropdowns: {
+                students: false,
+                teachers: false,
+                marks: false,
+                reports: false,
+                system: false,
+                classes: false
+            },
+            sidebarCollapsed: false,
+            currentPath: window.location.pathname,
+
+            init() {
+                // Initialize collapsed state from localStorage
+                try {
+                    this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+                    // Load saved dropdown states from localStorage
+                    const savedDropdowns = localStorage.getItem('sidebarDropdowns');
+                    if (savedDropdowns) {
+                        try {
+                            const parsed = JSON.parse(savedDropdowns);
+                            Object.keys(this.dropdowns).forEach(key => {
+                                if (parsed[key] !== undefined) {
+                                    this.dropdowns[key] = parsed[key];
+                                }
+                            });
+                        } catch (e) {
+                            console.warn('Could not parse saved dropdowns:', e);
+                        }
+                    }
+
+                    this.applySidebarState();
+                } catch (e) {
+                    console.warn('Could not read sidebar state:', e);
+                    this.sidebarCollapsed = false;
+                }
+
+                // Set initial dropdown states based on current URL
+                this.updateDropdownsFromURL(this.currentPath);
+
+                // Listen for SPA navigation
+                window.addEventListener('spa:navigated', (e) => {
+                    this.currentPath = e.detail.path || window.location.pathname;
+                    this.updateDropdownsFromURL(this.currentPath);
+                });
+
+                // Listen for sidebar toggle from navbar
+                document.addEventListener('toggle-sidebar', () => {
+                    this.toggleSidebar();
+                });
+
+                // Listen for notification updates
+                window.addEventListener('notifications:updated', () => {
+                    this.updateNotificationBadge();
+                });
+            },
+
+            updateDropdownsFromURL(path) {
+                // Don't close all dropdowns automatically - keep current state
+                // Only update based on URL if needed
+
+                // If we're already on a page that should have a dropdown open, ensure it's open
+                if (!this.sidebarCollapsed) {
+                    const urlBasedState = {
+                        students: path.startsWith('/admin/students'),
+                        teachers: path.startsWith('/admin/teachers'),
+                        marks: path.startsWith('/admin/marks'),
+                        reports: path.startsWith('/admin/report-card'),
+                        system: path.startsWith('/admin/system'),
+                        classes: path.startsWith('/admin/classes') ||
+                                path.startsWith('/admin/class-levels') ||
+                                path.startsWith('/admin/streams') ||
+                                path.startsWith('/admin/class-categories')
+                    };
+
+                    // Merge URL-based state with current state
+                    Object.keys(this.dropdowns).forEach(key => {
+                        // Only update if URL suggests this should be open
+                        if (urlBasedState[key]) {
+                            this.dropdowns[key] = true;
+                        }
+                    });
+                }
+
+                this.saveDropdownState();
+            },
+
+            toggleDropdown(name, event) {
+                if (event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+
+                // Toggle the clicked dropdown
+                this.dropdowns[name] = !this.dropdowns[name];
+
+                // If opening a dropdown, close all others
+                if (this.dropdowns[name]) {
+                    Object.keys(this.dropdowns).forEach(key => {
+                        if (key !== name) {
+                            this.dropdowns[key] = false;
+                        }
+                    });
+                }
+
+                // Save state to localStorage
+                this.saveDropdownState();
+            },
+
+            closeAllDropdowns() {
+                // This method is available but won't be called automatically
+                Object.keys(this.dropdowns).forEach(key => {
+                    this.dropdowns[key] = false;
+                });
+                this.saveDropdownState();
+            },
+
+            saveDropdownState() {
+                try {
+                    localStorage.setItem('sidebarDropdowns', JSON.stringify(this.dropdowns));
+                } catch (e) {
+                    console.warn('Could not save dropdown state:', e);
+                }
+            },
+
+            handleLinkClick(event) {
+                // When clicking a link inside dropdown, keep the dropdown open
+                // This prevents dropdown from closing when navigating
+                if (event) {
+                    event.stopPropagation();
+                }
+
+                // Find which dropdown this link belongs to
+                const linkElement = event?.target?.closest('a') || event?.target;
+                if (linkElement) {
+                    const href = linkElement.getAttribute('href');
+                    if (href) {
+                        // Determine which dropdown should stay open
+                        if (href.startsWith('/admin/students')) {
+                            this.dropdowns.students = true;
+                        } else if (href.startsWith('/admin/teachers')) {
+                            this.dropdowns.teachers = true;
+                        } else if (href.startsWith('/admin/marks')) {
+                            this.dropdowns.marks = true;
+                        } else if (href.startsWith('/admin/report-card')) {
+                            this.dropdowns.reports = true;
+                        } else if (href.startsWith('/admin/system')) {
+                            this.dropdowns.system = true;
+                        } else if (href.startsWith('/admin/classes') ||
+                                  href.startsWith('/admin/class-levels') ||
+                                  href.startsWith('/admin/streams') ||
+                                  href.startsWith('/admin/class-categories')) {
+                            this.dropdowns.classes = true;
+                        }
+                        this.saveDropdownState();
+                    }
+                }
+
+                // Let SPA router handle navigation
+                // Dropdown will stay open due to saved state
+            },
+
+            isActive(path) {
+                if (!path || path === '#') return false;
+                return this.currentPath === path || this.currentPath.startsWith(path + '/');
+            },
+
+            isExactActive(path) {
+                return this.currentPath === path;
+            },
+
+            toggleSidebar() {
+                this.sidebarCollapsed = !this.sidebarCollapsed;
+
+                try {
+                    localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
+                } catch (e) {
+                    console.warn('Could not save sidebar state:', e);
+                }
+
+                this.applySidebarState();
+
+                // Close all dropdowns when collapsing (optional)
+                if (this.sidebarCollapsed) {
+                    this.closeAllDropdowns();
+                } else {
+                    // Restore dropdown states when expanding
+                    this.restoreDropdownStates();
+                }
+            },
+
+            restoreDropdownStates() {
+                try {
+                    const savedDropdowns = localStorage.getItem('sidebarDropdowns');
+                    if (savedDropdowns) {
+                        const parsed = JSON.parse(savedDropdowns);
+                        Object.keys(this.dropdowns).forEach(key => {
+                            if (parsed[key] !== undefined) {
+                                this.dropdowns[key] = parsed[key];
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Could not restore dropdown states:', e);
+                }
+            },
+
+            applySidebarState() {
+                const sidebar = document.querySelector('.sidebar');
+                const sidebarArea = document.querySelector('.sidebar-area');
+                const mainContent = document.querySelector('.main-content-area');
+                const toggleIcon = document.querySelector('#sidebarToggle i');
+
+                if (this.sidebarCollapsed) {
+                    sidebar?.classList.add('collapsed');
+                    sidebarArea?.classList.add('collapsed');
+                    mainContent?.classList.add('collapsed');
+                    toggleIcon?.classList.remove('fa-chevron-left');
+                    toggleIcon?.classList.add('fa-chevron-right');
+                } else {
+                    sidebar?.classList.remove('collapsed');
+                    sidebarArea?.classList.remove('collapsed');
+                    mainContent?.classList.remove('collapsed');
+                    toggleIcon?.classList.remove('fa-chevron-right');
+                    toggleIcon?.classList.add('fa-chevron-left');
+                }
+            },
+
+            updateNotificationBadge() {
+                // This method can be called when notifications are updated
+                // It will update any notification badge in the sidebar
+                const badges = document.querySelectorAll('.notification-badge');
+                if (badges.length > 0) {
+                    // You might want to fetch the count here or update from event data
+                    // For now, we'll just trigger a badge update
+                    badges.forEach(badge => {
+                        badge.classList.add('animate-pulse');
+                        setTimeout(() => badge.classList.remove('animate-pulse'), 1000);
+                    });
+                }
+            }
+        }));
+    });
+
+    // Global notification refresh (for badges outside Alpine components)
+    document.addEventListener('alpine:initialized', () => {
+        // Auto-refresh notification count every 30 seconds for all badges
+        setInterval(() => {
+            // Find and update all notification badges
+            const badges = document.querySelectorAll('.notification-badge');
+            if (badges.length > 0) {
+                fetch('{{ route("notifications.unreadCount") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        badges.forEach(badge => {
+                            const count = data.count;
+                            if (count > 0) {
+                                badge.textContent = count;
+                                badge.classList.remove('hidden');
+                            } else {
+                                badge.classList.add('hidden');
+                            }
+                        });
+                    })
+                    .catch(error => console.error('Error updating notification badges:', error));
+            }
+        }, 30000);
+    });
 </script>
 
     <!-- Theme Management -->
@@ -735,6 +898,7 @@
 
 
     </script>
+
 
     @stack('scripts')
 </body>

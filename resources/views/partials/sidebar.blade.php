@@ -42,7 +42,7 @@
         </a>
 
         <!-- Students Dropdown (Only if has permission) -->
-        @can('students.view')
+        @canany('students.view')
         <div class="relative">
             <button @click="toggleDropdown('students', $event)"
                 :class="{
@@ -68,7 +68,7 @@
                  style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
 
-                @can('students.view')
+                @canany('students.view')
                 <a href="/admin/students"
                    @click="handleLinkClick()"
                    :class="{
@@ -79,9 +79,9 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>All Students</span>
                 </a>
-                @endcan
+                @endcanany
 
-                @can('students.create')
+                @canany('students.create')
                 <a href="/admin/students/create"
                    @click="handleLinkClick()"
                    :class="{
@@ -92,13 +92,13 @@
                     <i class="fas fa-user-plus w-4 text-center"></i>
                     <span>Add New</span>
                 </a>
-                @endcan
+                @endcanany
             </div>
         </div>
-        @endcan
+        @endcanany
 
         <!-- Teachers Dropdown (Only if has permission) -->
-        @can('teachers.view')
+        @canany('teachers.view')
         <div class="relative">
             <button @click="toggleDropdown('teachers', $event)"
                 :class="{
@@ -117,7 +117,7 @@
             <div x-show="dropdowns.teachers" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
 
-                @can('teachers.view')
+                @canany('teachers.view')
                 <a href="/admin/teachers"
                    @click="handleLinkClick()"
                    :class="{
@@ -128,9 +128,9 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>All Teachers</span>
                 </a>
-                @endcan
+                @endcanany
 
-                @can('teachers.create')
+                @canany('teachers.create')
                 <a href="/admin/teachers/create"
                    @click="handleLinkClick()"
                    :class="{
@@ -141,84 +141,84 @@
                     <i class="fas fa-user-plus w-4 text-center"></i>
                     <span>Add New</span>
                 </a>
-                @endcan
+                @endcanany
             </div>
         </div>
-        @endcan
+        @endcanany
 
         <!-- Classes Dropdown -->
-@can('classes.view')
-<div class="relative">
-    <button @click="toggleDropdown('classes', $event)"
-        :class="{
-            'bg-white !text-maroon font-semibold': isActive('/admin/classes') || isActive('/admin/class-levels') || isActive('/admin/streams'),
-            'text-white/90 hover:bg-white/20': !isActive('/admin/classes') && !isActive('/admin/class-levels') && !isActive('/admin/streams')
-        }"
-        class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
-        <div class="flex items-center space-x-3">
-            <i class="fas fa-chalkboard w-5 text-center"></i>
-            <span class="font-medium">Classes</span>
-        </div>
-        <i class="fas fa-chevron-down text-xs transition-transform duration-200"
-           :class="dropdowns.classes ? 'rotate-180' : ''"></i>
-    </button>
+        @canany('classes.view')
+        <div class="relative">
+            <button @click="toggleDropdown('classes', $event)"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/classes') || isActive('/admin/class-levels') || isActive('/admin/streams'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/classes') && !isActive('/admin/class-levels') && !isActive('/admin/streams')
+                }"
+                class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chalkboard w-5 text-center"></i>
+                    <span class="font-medium">Classes</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                :class="dropdowns.classes ? 'rotate-180' : ''"></i>
+            </button>
 
-    <!-- UPDATED: Match other dropdowns -->
-    <div x-show="dropdowns.classes"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 scale-100"
-         x-transition:leave-end="opacity-0 scale-95"
-         style="display: none;"
-         class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
-        <a href="/admin/classes"
-           @click="handleLinkClick()"
-           :class="{
-               'bg-white !text-maroon font-semibold': isExactActive('/admin/classes'),
-               'text-white/90 hover:bg-white/20': !isExactActive('/admin/classes')
-           }"
-           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-            <i class="fas fa-list w-4 text-center"></i>
-            <span>All Classes</span>
-        </a>
-        <a href="/admin/class-categories"
-           @click="handleLinkClick()"
-           :class="{
-               'bg-white !text-maroon font-semibold': isActive('/admin/class-categories'),
-               'text-white/90 hover:bg-white/20': !isActive('/admin/class-categories')
-           }"
-           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-            <i class="fas fa-tags w-4 text-center"></i>
-            <span>Categories</span>
-        </a>
-        <a href="/admin/class-levels"
-           @click="handleLinkClick()"
-           :class="{
-               'bg-white !text-maroon font-semibold': isActive('/admin/class-levels'),
-               'text-white/90 hover:bg-white/20': !isActive('/admin/class-levels')
-           }"
-           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-            <i class="fas fa-layer-group w-4 text-center"></i>
-            <span>Class Levels</span>
-        </a>
-        <a href="/admin/streams"
-           @click="handleLinkClick()"
-           :class="{
-               'bg-white !text-maroon font-semibold': isActive('/admin/streams'),
-               'text-white/90 hover:bg-white/20': !isActive('/admin/streams')
-           }"
-           class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-            <i class="fas fa-stream w-4 text-center"></i>
-            <span>Streams</span>
-        </a>
-    </div>
-</div>
-@endcan
+            <!-- UPDATED: Match other dropdowns -->
+            <div x-show="dropdowns.classes"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                style="display: none;"
+                class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
+                <a href="/admin/classes"
+                @click="handleLinkClick()"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isExactActive('/admin/classes'),
+                    'text-white/90 hover:bg-white/20': !isExactActive('/admin/classes')
+                }"
+                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-list w-4 text-center"></i>
+                    <span>All Classes</span>
+                </a>
+                <a href="/admin/class-categories"
+                @click="handleLinkClick()"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/class-categories'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/class-categories')
+                }"
+                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-tags w-4 text-center"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="/admin/class-levels"
+                @click="handleLinkClick()"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/class-levels'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/class-levels')
+                }"
+                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-layer-group w-4 text-center"></i>
+                    <span>Class Levels</span>
+                </a>
+                <a href="/admin/streams"
+                @click="handleLinkClick()"
+                :class="{
+                    'bg-white !text-maroon font-semibold': isActive('/admin/streams'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/streams')
+                }"
+                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
+                    <i class="fas fa-stream w-4 text-center"></i>
+                    <span>Streams</span>
+                </a>
+            </div>
+        </div>
+        @endcanany
 
         <!-- Subjects (Only if has permission) -->
-        @can('subjects.view')
+        @canany('subjects.view')
         <a href="/admin/subjects"
            @click="handleLinkClick()"
            :class="{
@@ -229,7 +229,7 @@
             <i class="fas fa-book w-5 text-center"></i>
             <span class="font-medium">Subjects</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Marks Dropdown (Only if has permission) -->
         @canany(['marks.view', 'marks.entry'])
@@ -251,7 +251,7 @@
             <div x-show="dropdowns.marks" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
 
-                @can('marks.entry')
+                @canany('marks.entry')
                 <a href="/admin/marks-entry"
                    @click="handleLinkClick()"
                    :class="{
@@ -262,9 +262,9 @@
                     <i class="fas fa-pen w-4 text-center"></i>
                     <span>Enter Marks</span>
                 </a>
-                @endcan
+                @endcanany
 
-                @can('marks.view')
+                @canany('marks.view')
                 <a href="/admin/marks"
                    @click="handleLinkClick()"
                    :class="{
@@ -275,13 +275,13 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>View Marks</span>
                 </a>
-                @endcan
+                @endcanany
             </div>
         </div>
         @endcanany
 
         <!-- Reports Dropdown (Only if has permission) -->
-        @can('reports.view')
+        @canany('reports.view')
         <div class="relative">
             <button @click="toggleDropdown('reports', $event)"
                 :class="{
@@ -300,7 +300,7 @@
             <div x-show="dropdowns.reports" x-transition style="display: none;"
                  class="ml-8 mt-1 space-y-1 bg-white/10 backdrop-blur-sm rounded-lg p-2">
 
-                @can('reports.view')
+                @canany('reports.view')
                 <a href="/admin/report-card/form"
                    @click="handleLinkClick()"
                    :class="{
@@ -311,10 +311,10 @@
                     <i class="fas fa-graduation-cap w-4 text-center"></i>
                     <span>Report Cards</span>
                 </a>
-                @endcan
+                @endcanany
             </div>
         </div>
-        @endcan
+        @endcanany
 
        <!-- Settings (using your HEAD branch structure) -->
        @canany(['system.users', 'system.roles'])
@@ -343,7 +343,7 @@
         </a>
 
         <!-- Students Icon -->
-        @can('students.view')
+        @canany('students.view')
         <a href="/admin/students"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/students')}"
@@ -351,10 +351,10 @@
             <i class="fas fa-users text-xl"></i>
             <span class="sidebar-tooltip">Students</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Teachers Icon -->
-        @can('teachers.view')
+        @canany('teachers.view')
         <a href="/admin/teachers"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/teachers')}"
@@ -362,10 +362,10 @@
             <i class="fas fa-chalkboard-teacher text-xl"></i>
             <span class="sidebar-tooltip">Teachers</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Classes Icon -->
-        @can('classes.view')
+        @canany('classes.view')
         <a href="/admin/classes"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/classes')}"
@@ -373,10 +373,10 @@
             <i class="fas fa-chalkboard text-xl"></i>
             <span class="sidebar-tooltip">Classes</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Subjects Icon -->
-        @can('subjects.view')
+        @canany('subjects.view')
         <a href="/admin/subjects"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/subjects')}"
@@ -384,10 +384,10 @@
             <i class="fas fa-book text-xl"></i>
             <span class="sidebar-tooltip">Subjects</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Marks Icon -->
-        @can('marks.entry')
+        @canany('marks.entry')
         <a href="/admin/marks-entry"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/marks-entry')}"
@@ -395,10 +395,10 @@
             <i class="fas fa-edit text-xl"></i>
             <span class="sidebar-tooltip">Marks</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Reports Icon -->
-        @can('reports.view')
+        @canany('reports.view')
         <a href="/admin/report-card/form"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/report-card/form')}"
@@ -406,10 +406,10 @@
             <i class="fas fa-file-alt text-xl"></i>
             <span class="sidebar-tooltip">Reports</span>
         </a>
-        @endcan
+        @endcanany
 
         <!-- Settings Icon -->
-        @can(['system.users', 'system.roles'])
+        @canany(['system.users', 'system.roles'])
         <a href="/admin/system"
            @click="handleLinkClick()"
            :class="{'bg-white/30': isActive('/admin/system')}"
@@ -417,7 +417,7 @@
             <i class="fas fa-cog text-xl"></i>
             <span class="sidebar-tooltip">Settings</span>
         </a>
-        @endcan
+        @endcanany
     </nav>
 
     <!-- Logout Button (Everyone) -->

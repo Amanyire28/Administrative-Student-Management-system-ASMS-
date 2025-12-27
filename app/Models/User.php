@@ -29,7 +29,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // Keep for backward compatibility
         'is_active',
         'staff_id',
         'phone',
@@ -210,52 +209,155 @@ class User extends Authenticatable
         $this->syncRoles([$role]);
     }
 
-
+    /**
+     * Relationship for notification preferences
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
 
     /**
-     * Boot method to handle role synchronization
+     * Check if user has notification preference enabled
      */
-    protected static function boot()
+    public function hasNotificationPreference($type, $category)
     {
-        parent::boot();
+        $preference = $this->notificationPreferences()
+            ->where('type', $type)
+            ->where('category', $category)
+            ->first();
 
-        // When creating a user, assign the role from the role attribute
-        static::creating(function ($user) {
-            if (isset($user->attributes['role']) && $user->attributes['role']) {
-                $role = $user->attributes['role'];
-                unset($user->attributes['role']); // Remove from attributes to avoid conflict
+        return $preference ? $preference->enabled : true; // Default to true if no preference
+    }
 
-                // Store role temporarily to assign after creation
-                $user->roleToAssign = $role;
-            }
-        });
-
-        // After creating a user, assign the role
-        static::created(function ($user) {
-            if (isset($user->roleToAssign)) {
-                $user->assignRole($user->roleToAssign);
-                unset($user->roleToAssign);
-            }
-        });
-
-        // When updating, sync the role if role attribute is present
-        static::updating(function ($user) {
-            if (array_key_exists('role', $user->attributes)) {
-                $role = $user->attributes['role'];
-                unset($user->attributes['role']); // Remove from attributes to avoid direct update
-
-                // Store role temporarily to sync after update
-                $user->roleToSync = $role;
-            }
-        });
-
-        // After updating, sync the role
-        static::updated(function ($user) {
-            if (isset($user->roleToSync)) {
-                $user->syncRoles([$user->roleToSync]);
-                unset($user->roleToSync);
-            }
+    /**
+     * Get user's notification preferences
+     */
+    public function getNotificationPreferences()
+    {
+        return $this->notificationPreferences()->get()->keyBy(function($item) {
+            return $item->type . '_' . $item->category;
         });
     }
 
+    /**
+     * Update notification preference
+     */
+    public function updateNotificationPreference($type, $category, $enabled)
+    {
+        return $this->notificationPreferences()->updateOrCreate(
+            [
+                'type' => $type,
+                'category' => $category
+            ],
+            ['enabled' => $enabled]
+        );
+    }
+
+    /**
+     * Initialize default notification preferences for new users
+     */
+    public function initializeNotificationPreferences()
+    {
+        $defaultPreferences = [
+            // Email preferences
+            ['type' => 'email', 'category' => 'system', 'enabled' => true],
+            ['type' => 'email', 'category' => 'academic', 'enabled' => true],
+            ['type' => 'email', 'category' => 'financial', 'enabled' => false],
+            ['type' => 'email', 'category' => 'security', 'enabled' => true],
+            ['type' => 'email', 'category' => 'announcements', 'enabled' => true],
+
+            // In-app preferences
+            ['type' => 'in_app', 'category' => 'system', 'enabled' => true],
+            ['type' => 'in_app', 'category' => 'academic', 'enabled' => true],
+            ['type' => 'in_app', 'category' => 'financial', 'enabled' => false],
+            ['type' => 'in_app', 'category' => 'security', 'enabled' => true],
+            ['type' => 'in_app', 'category' => 'announcements', 'enabled' => true],
+
+            // SMS preferences (default to false for cost reasons)
+            ['type' => 'sms', 'category' => 'system', 'enabled' => false],
+            ['type' => 'sms', 'category' => 'academic', 'enabled' => false],
+            ['type' => 'sms', 'category' => 'financial', 'enabled' => false],
+            ['type' => 'sms', 'category' => 'security', 'enabled' => true], // Security alerts via SMS
+            ['type' => 'sms', 'category' => 'announcements', 'enabled' => false],
+        ];
+
+        foreach ($defaultPreferences as $preference) {
+            $this->notificationPreferences()->create($preference);
+        }
+    }
+
+    /**
+     * Check if user should receive a specific type of notification
+     * This checks both permission and preference
+     */
+    public function shouldReceiveNotification($notificationType, $category = null, $permission = null)
+    {
+        // Check permission if required
+        if ($permission && !$this->can($permission)) {
+            return false;
+        }
+
+        // Check notification preference
+        if ($category && !$this->hasNotificationPreference($notificationType, $category)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get users who should receive a specific notification type
+     * Static method for bulk operations
+     */
+    public static function getUsersForNotification($permission = null, $notificationType = 'in_app', $category = null)
+    {
+        $query = self::query();
+
+        // Filter by permission if specified
+        if ($permission) {
+            $query->whereHas('roles.permissions', function($q) use ($permission) {
+                $q->where('name', $permission);
+            });
+        }
+
+        return $query->get()->filter(function($user) use ($notificationType, $category) {
+            return $user->shouldReceiveNotification($notificationType, $category);
+        });
+    }
+
+    /**
+     * Send notification to users with specific permission
+     * Helper method for controllers
+     */
+    public static function notifyUsersWithPermission($permission, $notification, $category = null)
+    {
+        $users = self::getUsersForNotification($permission, 'in_app', $category);
+
+        foreach ($users as $user) {
+            $user->notify($notification);
+        }
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
+        // Return default avatar with initials
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    /**
+     * The "booted" method of the model
+     * Initialize notification preferences when user is created
+     */
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            // Initialize default notification preferences for new users
+            $user->initializeNotificationPreferences();
+        });
+    }
 }

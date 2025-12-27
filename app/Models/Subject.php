@@ -13,30 +13,70 @@ class Subject extends Model
         'name',
         'code',
         'description',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
-    // Relationships
+    /**
+     * Relationships
+     */
     public function classes()
     {
         return $this->belongsToMany(ClassModel::class, 'class_subject')
-                    ->withPivot('teacher_id')
-                    ->withTimestamps();
+            ->withPivot('teacher_id')
+            ->withTimestamps();
     }
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'class_subject')
-                    ->withPivot('class_id')
-                    ->withTimestamps();
+        return $this->belongsToMany(Teacher::class, 'teacher_subject')
+            ->withTimestamps();
     }
 
-    public function marks()
+    /**
+     * Scope for active subjects
+     */
+    public function scopeActive($query)
     {
-        return $this->hasMany(Mark::class);
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for ordered subjects
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('name');
+    }
+
+    /**
+     * Accessors
+     */
+    public function getStatusBadgeAttribute()
+    {
+        return $this->is_active
+            ? '<span class="badge badge-success">Active</span>'
+            : '<span class="badge badge-danger">Inactive</span>';
+    }
+
+    /**
+     * Check if subject is assigned to any class
+     */
+    public function isAssignedToClass()
+    {
+        return $this->classes()->exists();
+    }
+
+    /**
+     * Get total students enrolled in this subject
+     */
+    public function getTotalStudentsAttribute()
+    {
+        return $this->classes->sum(function($class) {
+            return $class->students()->count();
+        });
     }
 }

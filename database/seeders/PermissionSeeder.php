@@ -78,7 +78,7 @@ class PermissionSeeder extends Seeder
 
         // Create all permissions in database
         foreach ($permissions as $permission) {
-            Permission::create([
+            Permission::firstOrCreate([
                 'name' => $permission,
                 'guard_name' => 'web'
             ]);
@@ -93,131 +93,131 @@ class PermissionSeeder extends Seeder
     /**
      * Create roles and assign permissions
      */
-    private function createRoles(): void
-    {
-        // 1. Super Admin Role (has ALL permissions)
-        $superAdmin = Role::create([
-            'name' => 'Super Admin',
-            'guard_name' => 'web'
-        ]);
-        $superAdmin->givePermissionTo(Permission::all());
-        $this->command->info('✅ Created Super Admin role with ALL permissions');
+   private function createRoles(): void
+{
+    // 1. Super Admin Role (has ALL permissions)
+    $superAdmin = Role::firstOrCreate([
+        'name' => 'Super Admin',
+        'guard_name' => 'web'
+    ]);
+    $superAdmin->syncPermissions(Permission::all());
+    $this->command->info('✅ Super Admin role synced with ALL permissions');
 
-        // 2. Headteacher Role
-        $headteacher = Role::create([
-            'name' => 'Headteacher',
-            'guard_name' => 'web'
-        ]);
-        $headteacher->givePermissionTo([
-            // Students - full access
-            'students.view',
-            'students.view-detail',
-            'students.create',
-            'students.edit',
-            'students.delete',
-            'students.export',
-            'students.promote',
+    // 2. Headteacher Role
+    $headteacher = Role::firstOrCreate([
+        'name' => 'Headteacher',
+        'guard_name' => 'web'
+    ]);
+    $headteacher->syncPermissions([
+        // Students - full access
+        'students.view',
+        'students.view-detail',
+        'students.create',
+        'students.edit',
+        'students.delete',
+        'students.export',
+        'students.promote',
 
-            // Teachers - can manage
-            'teachers.view',
-            'teachers.view-detail',
-            'teachers.create',
-            'teachers.edit',
-            'teachers.assign',
+        // Teachers - can manage
+        'teachers.view',
+        'teachers.view-detail',
+        'teachers.create',
+        'teachers.edit',
+        'teachers.assign',
 
-            // Classes - full access (UPDATED)
-            'classes.view',
-            'classes.view-detail',
-            'classes.create',
-            'classes.edit',
-            'classes.delete',
-            'classes.assign-subjects',
-            'classes.assign-students',
+        // Classes - full access (UPDATED)
+        'classes.view',
+        'classes.view-detail',
+        'classes.create',
+        'classes.edit',
+        'classes.delete',
+        'classes.assign-subjects',
+        'classes.assign-students',
 
-            // Subjects - full access (UPDATED)
-            'subjects.view',
-            'subjects.view-detail',
-            'subjects.create',
-            'subjects.edit',
-            'subjects.delete',
-            'subjects.assign-teachers',
+        // Subjects - full access (UPDATED)
+        'subjects.view',
+        'subjects.view-detail',
+        'subjects.create',
+        'subjects.edit',
+        'subjects.delete',
+        'subjects.assign-teachers',
 
-            // Reports - full access
-            'reports.view',
-            'reports.generate',
-            'reports.print',
-            'reports.export',
-            'reports.analytics',
-        ]);
-        $this->command->info('✅ Created Headteacher role with ' . $headteacher->permissions->count() . ' permissions');
+        // Reports - full access
+        'reports.view',
+        'reports.generate',
+        'reports.print',
+        'reports.export',
+        'reports.analytics',
+    ]);
+    $this->command->info('✅ Headteacher role synced with ' . count($headteacher->permissions) . ' permissions');
 
-        // 3. Teacher Role
-        $teacher = Role::create([
-            'name' => 'Teacher',
-            'guard_name' => 'web'
-        ]);
-        $teacher->givePermissionTo([
-            // Students - view only
-            'students.view',
-            'students.view-detail',
+    // 3. Teacher Role
+    $teacher = Role::firstOrCreate([
+        'name' => 'Teacher',
+        'guard_name' => 'web'
+    ]);
+    $teacher->syncPermissions([
+        // Students - view only
+        'students.view',
+        'students.view-detail',
 
-            // Classes - view only (UPDATED)
-            'classes.view',
-            'classes.view-detail',
+        // Classes - view only (UPDATED)
+        'classes.view',
+        'classes.view-detail',
 
-            // Subjects - view only (UPDATED)
-            'subjects.view',
-            'subjects.view-detail',
+        // Subjects - view only (UPDATED)
+        'subjects.view',
+        'subjects.view-detail',
 
-            // Marks - can enter and edit
-            'marks.view',
-            'marks.entry',
-            'marks.edit',
+        // Marks - can enter and edit
+        'marks.view',
+        'marks.entry',
+        'marks.edit',
 
-            // Reports - view and print
-            'reports.view',
-            'reports.print',
-        ]);
-        $this->command->info('✅ Created Teacher role with ' . $teacher->permissions->count() . ' permissions');
+        // Reports - view and print
+        'reports.view',
+        'reports.print',
+    ]);
+    $this->command->info('✅ Teacher role synced with ' . count($teacher->permissions) . ' permissions');
 
-        // 4. Admin Staff Role
-        $adminStaff = Role::create([
-            'name' => 'Admin Staff',
-            'guard_name' => 'web'
-        ]);
-        $adminStaff->givePermissionTo([
-            // Students - full access except delete
-            'students.view',
-            'students.view-detail',
-            'students.create',
-            'students.edit',
-            'students.export',
+    // 4. Admin Staff Role
+    $adminStaff = Role::firstOrCreate([
+        'name' => 'Admin Staff',
+        'guard_name' => 'web'
+    ]);
+    $adminStaff->syncPermissions([
+        // Students - full access except delete
+        'students.view',
+        'students.view-detail',
+        'students.create',
+        'students.edit',
+        'students.export',
 
-            // Teachers - view and manage
-            'teachers.view',
-            'teachers.view-detail',
-            'teachers.create',
-            'teachers.edit',
+        // Teachers - view and manage
+        'teachers.view',
+        'teachers.view-detail',
+        'teachers.create',
+        'teachers.edit',
 
-            // Classes - can manage (UPDATED)
-            'classes.view',
-            'classes.view-detail',
-            'classes.create',
-            'classes.edit',
-            'classes.assign-subjects',
-            'classes.assign-students',
+        // Classes - can manage (UPDATED)
+        'classes.view',
+        'classes.view-detail',
+        'classes.create',
+        'classes.edit',
+        'classes.assign-subjects',
+        'classes.assign-students',
 
-            // Subjects - can manage (UPDATED)
-            'subjects.view',
-            'subjects.view-detail',
-            'subjects.create',
-            'subjects.edit',
-        ]);
-        $this->command->info('✅ Created Admin Staff role with ' . $adminStaff->permissions->count() . ' permissions');
+        // Subjects - can manage (UPDATED)
+        'subjects.view',
+        'subjects.view-detail',
+        'subjects.create',
+        'subjects.edit',
+    ]);
+    $this->command->info('✅ Admin Staff role synced with ' . count($adminStaff->permissions) . ' permissions');
 
-        $this->command->info('');
-        $this->command->info('📊 Summary:');
-        $this->command->info('   Total Roles: ' . Role::count());
-        $this->command->info('   Total Permissions: ' . Permission::count());
-    }
+    $this->command->info('');
+    $this->command->info('📊 Summary:');
+    $this->command->info('   Total Roles: ' . Role::count());
+    $this->command->info('   Total Permissions: ' . Permission::count());
+}
 }

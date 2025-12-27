@@ -29,7 +29,8 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Students Card -->
+        <!-- Students Card - Show only if user can view students -->
+        @canany(['students.view', 'students.view-detail'])
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200 cursor-pointer"
              onclick="window.location.href='{{ route('students.index') }}'">
             <div class="flex items-center justify-between">
@@ -48,8 +49,10 @@
                 </div>
             </div>
         </div>
+        @endcanany
 
-        <!-- Teachers Card -->
+        <!-- Teachers Card - Show only if user can view teachers -->
+        @canany(['teachers.view', 'teachers.view-detail'])
         <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200 cursor-pointer"
              onclick="window.location.href='{{ route('teachers.index') }}'">
             <div class="flex items-center justify-between">
@@ -68,8 +71,10 @@
                 </div>
             </div>
         </div>
+        @endcanany
 
-        <!-- Subjects Card -->
+        <!-- Subjects Card - Show only if user can view subjects -->
+        @canany(['subjects.view', 'subjects.view-detail'])
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200 cursor-pointer"
              onclick="window.location.href='{{ route('subjects.index') }}'">
             <div class="flex items-center justify-between">
@@ -88,6 +93,7 @@
                 </div>
             </div>
         </div>
+        @endcanany
     </div>
 
     <!-- Quick Actions Section -->
@@ -99,7 +105,8 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Add Student -->
+            <!-- Add Student - Show only if user can create students -->
+            @can('students.create')
             <a href="{{ route('students.create') }}"
                hx-get="{{ route('students.create') }}"
                hx-target="#page-content"
@@ -115,8 +122,10 @@
                 </div>
                 <i class="fas fa-arrow-right text-blue-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcan
 
-            <!-- View All Students -->
+            <!-- View All Students - Show only if user can view students -->
+            @canany(['students.view', 'students.view-detail'])
             <a href="{{ route('students.index') }}"
                hx-get="{{ route('students.index') }}"
                hx-target="#page-content"
@@ -132,8 +141,10 @@
                 </div>
                 <i class="fas fa-arrow-right text-green-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcanany
 
-            <!-- Add Teacher -->
+            <!-- Add Teacher - Show only if user can create teachers -->
+            @can('teachers.create')
             <a href="{{ route('teachers.create') }}"
                hx-get="{{ route('teachers.create') }}"
                hx-target="#page-content"
@@ -149,8 +160,10 @@
                 </div>
                 <i class="fas fa-arrow-right text-yellow-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcan
 
-            <!-- View Teachers -->
+            <!-- View Teachers - Show only if user can view teachers -->
+            @canany(['teachers.view', 'teachers.view-detail'])
             <a href="{{ route('teachers.index') }}"
                hx-get="{{ route('teachers.index') }}"
                hx-target="#page-content"
@@ -166,8 +179,10 @@
                 </div>
                 <i class="fas fa-arrow-right text-indigo-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcanany
 
-            <!-- Manage Subjects -->
+            <!-- Manage Subjects - Show only if user can view subjects -->
+            @canany(['subjects.view', 'subjects.view-detail'])
             <a href="{{ route('subjects.index') }}"
                hx-get="{{ route('subjects.index') }}"
                hx-target="#page-content"
@@ -183,8 +198,10 @@
                 </div>
                 <i class="fas fa-arrow-right text-purple-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcanany
 
-            <!-- Enter Marks -->
+            <!-- Enter Marks - Show only if user can enter marks -->
+            @can('marks.entry')
             <a href="{{ route('marks.entry.form') }}"
                hx-get="{{ route('marks.entry.form') }}"
                hx-target="#page-content"
@@ -200,15 +217,29 @@
                 </div>
                 <i class="fas fa-arrow-right text-red-500 group-hover:translate-x-2 transition-transform"></i>
             </a>
+            @endcan
         </div>
+
+        <!-- If user has no quick action permissions -->
+        @cannot(['students.create', 'students.view', 'students.view-detail', 'teachers.create', 'teachers.view', 'teachers.view-detail', 'subjects.view', 'subjects.view-detail', 'marks.entry'])
+        <div class="text-center py-8">
+            <div class="inline-block p-6 bg-gray-100 dark:bg-gray-900 rounded-full mb-4">
+                <i class="fas fa-lock text-gray-300 dark:text-gray-600 text-5xl"></i>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-lg">No quick actions available for your role</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm mt-2">Contact administrator for access permissions</p>
+        </div>
+        @endcannot
     </div>
 
-    <!-- Recent Students Activity -->
+    <!-- Recent Students Activity - Show only if user can view students -->
+    @canany(['students.view', 'students.view-detail'])
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 <i class="fas fa-history text-blue-500 mr-2"></i>Recent Students
             </h2>
+            @canany(['students.view', 'students.view-detail'])
             <a href="{{ route('students.index') }}"
                hx-get="{{ route('students.index') }}"
                hx-target="#page-content"
@@ -216,6 +247,7 @@
                class="text-blue-600 hover:text-blue-700 dark:text-blue-400 text-sm font-medium">
                 View All →
             </a>
+            @endcanany
         </div>
 
         <div class="space-y-3">
@@ -254,6 +286,7 @@
                     <i class="fas fa-user-graduate text-gray-300 dark:text-gray-600 text-5xl"></i>
                 </div>
                 <p class="text-gray-500 dark:text-gray-400 text-lg">No students registered yet</p>
+                @can('students.create')
                 <a href="{{ route('students.create') }}"
                    hx-get="{{ route('students.create') }}"
                    hx-target="#page-content"
@@ -261,10 +294,12 @@
                    class="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-plus mr-2"></i>Add First Student
                 </a>
+                @endcan
             </div>
             @endforelse
         </div>
     </div>
+    @endcanany
 
     <!-- System Status (Optional) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

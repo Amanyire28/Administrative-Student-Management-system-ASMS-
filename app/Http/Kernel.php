@@ -18,6 +18,8 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+         'redirect.jetstream.profile' => \App\Http\Middleware\RedirectJetstreamProfile::class,
+          'check.password.change' => \App\Http\Middleware\CheckPasswordChange::class,
     ];
 
     /**

@@ -20,7 +20,7 @@
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-8 w-8">
                                 <div class="h-8 w-8 rounded-full bg-maroon bg-opacity-20 dark:bg-opacity-30 flex items-center justify-center text-sm">
-                                    <span class="text-maroon dark:text-maroon-light font-semibold">
+                                    <span class="text-white dark:text-maroon-light font-semibold">
                                         {{ strtoupper(substr($user->name, 0, 1)) }}
                                     </span>
                                 </div>
@@ -34,7 +34,7 @@
                     </td>
 
                     <!-- Email Column -->
-                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
+                    <td class="px-4 py-3 whitespace-nowrap text-white dark:text-gray-400 truncate max-w-[180px]">
                         {{ $user->email }}
                     </td>
 
@@ -47,7 +47,7 @@
                     <td class="px-4 py-3">
                         <div class="flex flex-wrap gap-1">
                             @foreach($user->roles as $role)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-maroon bg-opacity-10 dark:bg-opacity-20 text-maroon dark:text-maroon-light border border-maroon border-opacity-20">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-maroon bg-opacity-10 dark:bg-opacity-20 text-white dark:text-blue-200 border border-maroon border-opacity-20">
                                     {{ substr($role->name, 0, 12) }}{{ strlen($role->name) > 12 ? '...' : '' }}
                                 </span>
                             @endforeach
