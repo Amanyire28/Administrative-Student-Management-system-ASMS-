@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - {{ config('app.name') }}</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             background: #ffffff;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .login-container {
             min-height: 100vh;
             display: flex;
@@ -26,7 +26,7 @@
             justify-content: center;
             padding: 20px;
         }
-        
+
         .login-card {
             background: #ffffff;
             border-radius: 15px;
@@ -37,7 +37,7 @@
             width: 100%;
             text-align: center;
         }
-        
+
         .school-logo {
             width: 80px;
             height: 80px;
@@ -48,10 +48,10 @@
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 32px;
             font-weight: bold;
+            overflow: hidden;
         }
-        
+
         .school-name {
             color: #000000;
             font-size: 22px;
@@ -59,21 +59,21 @@
             margin-bottom: 8px;
             text-transform: uppercase;
         }
-        
+
         .portal-subtitle {
             color: #000000;
             font-size: 14px;
             margin-bottom: 20px;
             font-weight: 500;
         }
-        
+
         .login-title {
             color: #000000;
             font-size: 16px;
             margin-bottom: 20px;
             font-weight: 500;
         }
-        
+
         .form-control {
             border: 2px solid #cccccc;
             border-radius: 8px;
@@ -85,13 +85,13 @@
             line-height: 1.5;
             color: #000000;
         }
-        
+
         .form-control:focus {
             border-color: #000000;
             box-shadow: none;
             outline: none;
         }
-        
+
         .input-group-text {
             background: transparent;
             border: 2px solid #cccccc;
@@ -105,21 +105,21 @@
             padding: 12px 15px;
             transition: border-color 0.3s;
         }
-        
+
         .input-group:focus-within .input-group-text {
             border-color: #000000;
         }
-        
+
         .input-group .form-control {
             border-left: none;
             border-radius: 0 8px 8px 0;
             margin-bottom: 0;
         }
-        
+
         .input-group {
             margin-bottom: 15px;
         }
-        
+
         .btn-login {
             background: #800000;
             color: white;
@@ -132,12 +132,12 @@
             margin-top: 8px;
             transition: background-color 0.3s;
         }
-        
+
         .btn-login:hover {
             background: #5f0000;
             color: white;
         }
-        
+
         .forgot-password {
             color: #800000;
             text-decoration: none;
@@ -145,33 +145,33 @@
             margin-top: 15px;
             display: inline-block;
         }
-        
+
         .forgot-password:hover {
             color: #5f0000;
             text-decoration: underline;
         }
-        
+
         .footer-text {
             color: #999;
             font-size: 11px;
             margin-top: 20px;
         }
-        
+
         .alert {
             border-radius: 10px;
             margin-bottom: 20px;
         }
-        
+
         .form-check-input {
             border: 2px solid #cccccc;
             background-color: transparent;
         }
-        
+
         .form-check-input:checked {
             background-color: #800000;
             border-color: #800000;
         }
-        
+
         .form-check-input:focus {
             border-color: #800000;
             box-shadow: none;
@@ -184,16 +184,30 @@
         <div class="login-card">
             <!-- School Logo -->
             <div class="school-logo">
-                🎓
+                @php
+                    $logo = school_setting('school_logo');
+                    $schoolName = school_setting('school_name') ?? config('app.name');
+                @endphp
+
+                @if($logo && file_exists(public_path('storage/' . $logo)))
+                    <img src="{{ asset('storage/' . $logo) }}"
+                         alt="{{ $schoolName }}"
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                @else
+                    <!-- Fallback to initials -->
+                    <span style="font-size: 24px;">
+                        {{ substr($schoolName, 0, 2) }}
+                    </span>
+                @endif
             </div>
-            
+
             <!-- School Name -->
-            <h1 class="school-name">{{ config('app.name') }}</h1>
+            <h1 class="school-name">{{ $schoolName }}</h1>
             <p class="portal-subtitle">ADMIN PORTAL</p>
-            
+
             <!-- Login Title -->
             <h2 class="login-title">LOGIN TO YOUR ACCOUNT</h2>
-            
+
             <!-- Error Messages -->
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -202,49 +216,49 @@
                     @endforeach
                 </div>
             @endif
-            
+
             @if (session('status'))
                 <div class="alert alert-success">
                     {{ session('status') }}
                 </div>
             @endif
-            
+
             @if (session('error'))
                 <div class="alert alert-danger">
                     {{ session('error') }}
                 </div>
             @endif
-            
+
             <!-- Login Form -->
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-                
+
                 <!-- Email Input -->
                 <div class="input-group mb-3">
                     <span class="input-group-text">
                         <i class="fas fa-user" style="color: #666666;"></i>
                     </span>
-                    <input type="email" 
-                           class="form-control" 
-                           name="email" 
-                           placeholder="Email Address" 
-                           value="{{ old('email') }}" 
-                           required 
+                    <input type="email"
+                           class="form-control"
+                           name="email"
+                           placeholder="Email Address"
+                           value="{{ old('email') }}"
+                           required
                            autofocus>
                 </div>
-                
+
                 <!-- Password Input -->
                 <div class="input-group mb-3">
                     <span class="input-group-text">
                         <i class="fas fa-lock" style="color: #666666;"></i>
                     </span>
-                    <input type="password" 
-                           class="form-control" 
-                           name="password" 
-                           placeholder="Password" 
+                    <input type="password"
+                           class="form-control"
+                           name="password"
+                           placeholder="Password"
                            required>
                 </div>
-                
+
                 <!-- Remember Me -->
                 <div class="form-check text-start mb-3">
                     <input class="form-check-input" type="checkbox" name="remember" id="remember">
@@ -252,27 +266,27 @@
                         Remember me
                     </label>
                 </div>
-                
+
                 <!-- Login Button -->
                 <button type="submit" class="btn btn-login">
                     SIGN IN
                 </button>
             </form>
-            
+
             <!-- Forgot Password Link -->
             @if (Route::has('password.request'))
                 <a href="{{ route('password.request') }}" class="forgot-password">
                     Forgot your Password? Reset Here!
                 </a>
             @endif
-            
+
             <!-- Footer -->
             <div class="footer-text">
                 © {{ date('Y') }} ASMS System. All rights Reserved.
             </div>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

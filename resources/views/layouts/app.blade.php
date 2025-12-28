@@ -17,84 +17,117 @@
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     
     <style>
-        /* Override styles to ensure maroon theme loads properly */
-        :root {
-            --primary: #800000;
-            --primary-dark: #5f0000;
-            --primary-light: #b34d4d;
-            --primary-xxs: rgba(128,0,0,0.06);
+
+        /* Layout styles */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
-        
-        /* Ensure sidebar uses maroon from style.css */
-        .sidebar {
-            background: #800000 !important;
-            color: #ffffff !important;
+
+        @media (min-width: 1024px) {
+            .desktop-layout {
+                display: flex;
+                min-height: 100vh;
+                width: 100%;
+            }
+
+            .sidebar-area {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 256px;
+                z-index: 40;
+                transition: width 0.3s ease;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            .sidebar-area.collapsed {
+                width: 70px;
+            }
+
+            .main-content-area {
+                flex: 1;
+                margin-left: 256px;
+                transition: margin-left 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            .main-content-area.collapsed {
+                margin-left: 70px;
+            }
         }
-        
-        /* Ensure cards use proper maroon accents */
-        .card-accent {
-            border-left: 6px solid #800000 !important;
+
+        /* Colors */
+        .text-maroon { color: #800000 !important; }
+        .bg-maroon { background-color: #800000 !important; }
+        .hover\:bg-maroon:hover { background-color: #800000 !important; }
+        .border-maroon { border-color: #800000 !important; }
+
+        .dark .text-maroon { color: #b34d4d !important; }
+        .dark .bg-maroon { background-color: #5f0000 !important; }
+        .dark .border-maroon { border-color: #5f0000 !important; }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #800000;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
-        
-        .card-students,
-        .card-teachers,
-        .card-classes,
-        .card-subjects {
-            border-left: 6px solid #800000 !important;
-            background: linear-gradient(135deg, rgba(128,0,0,0.06), rgba(255,255,255,0.92)) !important;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        
-        /* Navigation active states */
-        .nav-link.active {
-            background: rgba(255,255,255,0.16) !important;
-            color: #ffffff !important;
+
+        /* Page transition */
+        .page-content {
+            animation: fadeIn 0.3s ease-in-out;
         }
-        
-        .nav-link:hover {
-            background: rgba(255,255,255,0.08) !important;
-            color: #ffffff !important;
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        /* Navbar brand color */
-        .navbar-brand {
-            color: #800000 !important;
-            font-weight: 600 !important;
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        
-        /* Avatar styling */
-        .avatar {
-            background: #ffffff !important;
-            color: #800000 !important;
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
         }
-        
-        /* Profile dropdown - solid background with proper z-index */
-        .dropdown {
-            position: relative !important;
-            z-index: 1050 !important;
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
         }
-        
-        .dropdown-menu {
-            background: #ffffff !important;
-            opacity: 1 !important;
-            border: 1px solid #dee2e6 !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            z-index: 1051 !important;
-            position: absolute !important;
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
         }
-        
-        .dropdown-item {
-            color: #333 !important;
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4a5568;
         }
-        
-        .dropdown-item:hover {
-            background: #f8f9fa !important;
-            color: #800000 !important;
-        }
-        
-        /* Ensure navbar has proper z-index */
-        .navbar {
-            z-index: 1040 !important;
-            position: relative !important;
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
         }
         
         /* Enhanced Sidebar Styling */
@@ -284,7 +317,7 @@
             }
         }
     </style>
-    
+
     @stack('styles')
 </head>
 <body>

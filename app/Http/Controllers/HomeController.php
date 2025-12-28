@@ -10,6 +10,10 @@ use App\Models\Subject;
 use App\Models\Mark;
 use App\Models\ReportGeneration;
 use Illuminate\Http\Request;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\ClassModel;
+use App\Models\Subject;
 
 class HomeController extends Controller
 {
@@ -28,7 +32,7 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         // Get counts
         $totalStudents = Student::where('is_active', true)->count();

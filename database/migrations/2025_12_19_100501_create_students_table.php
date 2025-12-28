@@ -26,11 +26,14 @@ class CreateStudentsTable extends Migration
             $table->string('parent_name')->nullable();
             $table->string('parent_phone')->nullable();
             $table->string('parent_email')->nullable();
-            $table->foreignId('class_id')->nullable()->constrained('classes')->onDelete('set null');
+            $table->unsignedBigInteger('class_id')->nullable();
             $table->date('enrollment_date');
             $table->string('photo')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            // Foreign key constraint - using julius2 syntax
+            $table->foreign('class_id')->references('id')->on('classes')->onDelete('set null');
         });
     }
 

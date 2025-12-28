@@ -97,9 +97,200 @@
                                 style="border: none !important;">
                             <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </button>
-                    </form>
-                </li>
-            </ul>
+
+                        <!-- Quick Add Dropdown -->
+                        <div x-show="open"
+                            @click.away="open = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-2"
+                            class="absolute right-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-3 z-50 overflow-hidden"
+                            style="display: none;">
+                            <div class="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700">
+                                <h3 class="font-bold text-gray-900 dark:text-white text-sm">Quick Actions</h3>
+                            </div>
+
+                            <div class="py-2">
+                                @can('students.create')
+                                <a href="/admin/students/create"
+                                class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
+                                        <i class="fas fa-user-plus text-blue-600 dark:text-blue-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">New Student</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Add student record</p>
+                                    </div>
+                                </a>
+                                @endcan
+
+                                @can('teachers.create')
+                                <a href="/admin/teachers/create"
+                                class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
+                                        <i class="fas fa-chalkboard-teacher text-green-600 dark:text-green-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">New Teacher</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Add teacher record</p>
+                                    </div>
+                                </a>
+                                @endcan
+
+                                @can('marks.entry')
+                                <a href="/admin/marks-entry"
+                                class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
+                                        <i class="fas fa-edit text-purple-600 dark:text-purple-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">Enter Marks</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Record student marks</p>
+                                    </div>
+                                </a>
+                                @endcan
+
+                                @can('classes.create')
+                                <a href="/admin/classes/create"
+                                class="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-200">
+                                        <i class="fas fa-chalkboard text-orange-600 dark:text-orange-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">New Class</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Create class section</p>
+                                    </div>
+                                </a>
+                                @endcan
+                            </div>
+                        </div>
+                    </div>
+                    @endcanany
+
+            </div>
+
+            <!-- User Profile -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="flex items-center space-x-2 sm:space-x-3 p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group">
+                    <!-- Avatar -->
+                    <div class="relative">
+                        <div class="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-r from-maroon to-maroon-dark rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                            <span class="text-white font-bold text-sm">MA</span>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                    </div>
+
+                    <!-- User Info (Visible on medium screens and up) -->
+                    <div class="hidden md:block text-left">
+                        <p class="font-bold text-gray-900 dark:text-white text-sm tracking-tight">Matthew </p>
+                        <p class="text-xs text-maroon dark:text-maroon-light font-medium flex items-center">
+                            <i class="fas fa-shield-alt mr-1 text-[10px]"></i>
+                            Admin
+                        </p>
+                    </div>
+
+                    <!-- Dropdown Icon -->
+                    <i class="fas fa-chevron-down text-gray-500 dark:text-gray-400 text-xs hidden md:block transition-transform duration-300"
+                       :class="open ? 'rotate-180' : ''"></i>
+                </button>
+
+                <!-- User Dropdown Menu -->
+                <div x-show="open"
+                    @click.away="open = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 -translate-y-2"
+                    class="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
+                    style="display: none;">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 px-6 py-5">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-14 h-14 bg-gradient-to-r from-maroon to-maroon-dark rounded-2xl flex items-center justify-center shadow-lg">
+                                <span class="text-white font-bold text-lg">MA</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-gray-900 dark:text-white text-lg">Matthew Amanyire</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">admin@asms.com</p>
+                                <div class="flex items-center mt-2">
+                                    <span class="px-3 py-1 bg-gradient-to-r from-maroon/10 to-maroon/5 text-maroon dark:text-maroon-light text-xs font-bold rounded-full">
+                                        <i class="fas fa-shield-alt mr-1"></i>
+                                        Super Admin
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Items -->
+                    <div class="py-3">
+                        <a href="#" class="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center mr-3">
+                                <i class="fas fa-user text-gray-700 dark:text-gray-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-900 dark:text-white">My Profile</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">View & edit profile</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400 text-sm"></i>
+                        </a>
+
+                        <a href="#" class="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center mr-3">
+                                <i class="fas fa-cog text-gray-700 dark:text-gray-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-900 dark:text-white">Settings</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">System preferences</p>
+                            </div>
+                            <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-full">3</span>
+                        </a>
+
+                        <a href="#" class="flex items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 group">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center mr-3">
+                                <i class="fas fa-bell text-gray-700 dark:text-gray-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-900 dark:text-white">Notifications</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Manage notifications</p>
+                            </div>
+                            <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-full">3</span>
+                        </a>
+                    </div>
+
+                    <!-- Logout -->
+                    <div class="border-t border-gray-100 dark:border-gray-700 px-6 py-4">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 hover:from-red-100 hover:to-red-200 dark:hover:from-red-800/30 dark:hover:to-red-700/20 text-red-600 dark:text-red-400 font-semibold rounded-xl transition-all duration-300 group">
+                                <i class="fas fa-sign-out-alt mr-3 group-hover:animate-pulse"></i>
+                                Sign Out
+                                <i class="fas fa-arrow-right ml-auto text-sm opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Search Bar -->
+    <div id="mobile-search" class="mt-4 hidden lg:hidden">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400 dark:text-gray-500"></i>
+            </div>
+            <input type="text"
+                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-maroon focus:ring-4 focus:ring-maroon/10 bg-white dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 shadow-sm transition-all duration-300"
+                placeholder="Search students, teachers, classes..."
+                data-search-input>
         </div>
     </div>
 </nav>

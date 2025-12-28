@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ClassModel;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\ClassLevel;
+use App\Models\Stream;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -14,7 +16,7 @@ class ClassController extends Controller
      */
     public function index()
     {
-        $classes = ClassModel::withCount('students')->paginate(15);
+        $classes = ClassModel::with(['classTeacher', 'classLevel', 'stream'])->withCount('students')->paginate(15);
         return view('modules.classes.index', compact('classes'));
     }
 
@@ -23,7 +25,11 @@ class ClassController extends Controller
      */
     public function create()
     {
-        return view('modules.classes.create');
+        $teachers = Teacher::orderBy('first_name')->get();
+        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+        $streams = Stream::active()->ordered()->get();
+
+        return view('modules.classes.create', compact('teachers', 'classLevels', 'streams'));
     }
 
     /**
@@ -32,12 +38,16 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:classes',
-            'level' => 'nullable|string|max:255',
-            'capacity' => 'required|integer|min:1|max:100',
+            'class_level_id' => 'required|exists:class_levels,id',
+            'stream_id' => 'required|exists:streams,id',
             'classroom' => 'nullable|string|max:255',
-            'description' => 'nullable|string'
+            'class_teacher_id' => 'nullable|exists:teachers,id'
         ]);
+
+        // Generate name from class_level and stream
+        $classLevel = ClassLevel::find($validated['class_level_id']);
+        $stream = Stream::find($validated['stream_id']);
+        $validated['name'] = $classLevel->name . ' ' . $stream->name;
 
         ClassModel::create($validated);
 
@@ -50,7 +60,7 @@ class ClassController extends Controller
      */
     public function show(ClassModel $class)
     {
-        $class->load(['students', 'subjects.pivot.teacher', 'teachers']);
+        $class->load(['students', 'subjects.pivot.teacher', 'teachers', 'classTeacher']);
         return view('modules.classes.show', compact('class'));
     }
 
@@ -59,7 +69,11 @@ class ClassController extends Controller
      */
     public function edit(ClassModel $class)
     {
-        return view('modules.classes.edit', compact('class'));
+        $teachers = Teacher::orderBy('first_name')->get();
+        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+        $streams = Stream::active()->ordered()->get();
+
+        return view('modules.classes.edit', compact('class', 'teachers', 'classLevels', 'streams'));
     }
 
     /**
@@ -68,13 +82,17 @@ class ClassController extends Controller
     public function update(Request $request, ClassModel $class)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:classes,name,' . $class->id,
-            'level' => 'nullable|string|max:255',
-            'capacity' => 'required|integer|min:1|max:100',
+            'class_level_id' => 'required|exists:class_levels,id',
+            'stream_id' => 'required|exists:streams,id',
             'classroom' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'class_teacher_id' => 'nullable|exists:teachers,id',
             'is_active' => 'boolean'
         ]);
+
+        // Generate name from class_level and stream
+        $classLevel = ClassLevel::find($validated['class_level_id']);
+        $stream = Stream::find($validated['stream_id']);
+        $validated['name'] = $classLevel->name . ' ' . $stream->name;
 
         $class->update($validated);
 
