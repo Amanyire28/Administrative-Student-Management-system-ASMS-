@@ -1,38 +1,21 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-    <title>@yield('title', school_setting('school_name') .'Dashboard') </title>
-
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        maroon: {
-                            DEFAULT: '#800000',
-                            dark: '#5f0000',
-                            light: '#b34d4d'
-                        },
-                    },
-                },
-            },
-        };
-    </script>
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'ASMS') - {{ config('app.name') }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    
     <style>
 
         /* Layout styles */
@@ -146,596 +129,304 @@
         .dark ::-webkit-scrollbar-thumb:hover {
             background: #718096;
         }
+        
+        /* Enhanced Sidebar Styling */
+        .layout-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 280px !important;
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Navbar should be fixed height */
+        .navbar {
+            flex-shrink: 0;
+        }
+        
+        /* Content area should be scrollable */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .sidebar-header h5 {
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .nav-section-header {
+            margin: 1rem 0 0.5rem 0;
+            padding: 0 0.5rem;
+        }
+        
+        .nav-section-header:first-child {
+            margin-top: 0.5rem;
+        }
+        
+        .nav-link {
+            padding: 0.75rem 1rem !important;
+            margin-bottom: 0.25rem !important;
+            border-radius: 8px !important;
+            color: rgba(255,255,255,0.9) !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        .nav-link i {
+            width: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1) !important;
+            color: #ffffff !important;
+            transform: translateX(4px) !important;
+        }
+        
+        .nav-link.active {
+            background: rgba(255,255,255,0.2) !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+        
+        .sub-link {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.9rem !important;
+            color: rgba(255,255,255,0.8) !important;
+        }
+        
+        .sub-link:hover {
+            background: rgba(255,255,255,0.08) !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        
+        .sub-link.active {
+            background: rgba(255,255,255,0.15) !important;
+            color: #ffffff !important;
+        }
+        
+        .quick-action {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+        }
+        
+        .quick-action:hover {
+            background: rgba(255,255,255,0.15) !important;
+            border-color: rgba(255,255,255,0.2) !important;
+        }
+        
+        .dropdown-toggle::after {
+            margin-left: auto;
+        }
+        
+        .avatar {
+            width: 50px !important;
+            height: 50px !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+        }
+        
+        .profile-name {
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            color: #ffffff !important;
+        }
+        
+        .profile-role {
+            font-size: 0.8rem !important;
+            color: rgba(255,255,255,0.7) !important;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .layout-container {
+                position: relative !important;
+                height: 100vh !important;
+            }
+            
+            .sidebar {
+                width: 280px !important;
+                height: 100vh !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: -280px !important;
+                z-index: 1060 !important;
+                transition: left 0.3s ease !important;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
+            }
+            
+            .sidebar.show {
+                left: 0 !important;
+            }
+            
+            .main-content {
+                width: 100% !important;
+                margin-left: 0 !important;
+                height: 100vh !important;
+            }
+            
+            .sidebar-overlay {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: rgba(0,0,0,0.5) !important;
+                z-index: 1055 !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .sidebar-overlay.show {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar {
+                position: relative !important;
+                left: 0 !important;
+            }
+            
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
     </style>
 
     @stack('styles')
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Sidebar -->
+        @include('partials.sidebar')
 
-
-    <div class="desktop-layout hidden lg:flex">
-        <!-- Sidebar Area -->
-        <div class="sidebar-area">
-            @include('partials.sidebar')
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="main-content-area">
-            <!-- Navbar -->
+        <!-- Main Content -->
+        <div class="main-content">
             @include('partials.navbar')
 
-            <!-- Flash Messages Container -->
-            <div id="flash-messages" class="px-6 pt-4">
-                @if(session('success'))
-                <div class="mb-6 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 dark:text-green-400"></i>
-                            <p class="ml-3 text-green-700 dark:text-green-300">{{ session('success') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-green-500 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                @if(session('error'))
-                <div class="mb-6 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle text-red-500 dark:text-red-400"></i>
-                            <p class="ml-3 text-red-700 dark:text-red-300">{{ session('error') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                @if(session('warning'))
-                <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400"></i>
-                            <p class="ml-3 text-yellow-700 dark:text-yellow-300">{{ session('warning') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-yellow-500 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
+            <!-- Scrollable Page Content -->
+            <div class="content-area">
+                @yield('content')
             </div>
-
-            <!-- Loading Indicator -->
-            <div id="loading-indicator"
-                 class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center"
-                 style="opacity: 0; pointer-events: none; transition: opacity 200ms;">
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-2xl">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-
-            <!-- Page Content -->
-            <main class="p-4 sm:p-6 lg:p-8 flex-1">
-                <div id="page-content" class="page-content">
-                    @hasSection('content')
-                        @yield('content')
-                    @else
-                        <div class="text-center py-12">
-                            <i class="fas fa-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
-                            <h2 class="text-2xl font-bold mb-2">No Content</h2>
-                            <p class="text-gray-600 dark:text-gray-400">Please define a @section('content') in your view.</p>
-                        </div>
-                    @endif
-                </div>
-            </main>
-
-            <!-- Footer -->
-            @include('partials.footer')
         </div>
     </div>
 
-
-    <!-- Mobile Layout -->
-
-    <div class="lg:hidden">
-        @include('partials.mobile-nav')
-        @include('partials.mobile-sidebar')
-
-        <div class="pt-16 pb-20">
-            <!-- Mobile Flash Messages -->
-            <div id="flash-messages-mobile" class="p-4">
-                @if(session('success'))
-                <div class="mb-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-3 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
-                            <p class="ml-3 text-green-700 dark:text-green-300 text-sm">{{ session('success') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-green-500">
-                            <i class="fas fa-times text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                @if(session('error'))
-                <div class="mb-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded-lg flash-message"
-                     x-data="{ show: true }"
-                     x-show="show"
-                     x-init="setTimeout(() => show = false, 5000)"
-                     x-transition>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle text-red-500 text-sm"></i>
-                            <p class="ml-3 text-red-700 dark:text-red-300 text-sm">{{ session('error') }}</p>
-                        </div>
-                        <button @click="show = false" class="text-red-500">
-                            <i class="fas fa-times text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-            </div>
-
-            <!-- Mobile Loading Indicator -->
-            <div id="loading-indicator-mobile"
-                 class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center"
-                 style="opacity: 0; pointer-events: none; transition: opacity 200ms;">
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-2xl">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-
-            <!-- Mobile Page Content -->
-            <main class="p-4">
-                <div id="page-content-mobile" class="page-content">
-                    @hasSection('content')
-                        @yield('content')
-                    @else
-                        <div class="text-center py-12">
-                            <i class="fas fa-exclamation-triangle text-5xl text-yellow-500 mb-4"></i>
-                            <h2 class="text-xl font-bold mb-2">No Content</h2>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm">Please define a @section('content') in your view.</p>
-                        </div>
-                    @endif
-                </div>
-            </main>
-        </div>
-
-        @include('partials.mobile-bottom-nav')
-    </div>
-
-    <!-- SPA Router -->
-    <script src="{{ asset('js/spa-router.js') }}"></script>
-
-
-    <!-- Alpine.js Component Definitions -->
-<script>
-     document.addEventListener('alpine:init', () => {
-         // School Profile Settings Component
-         Alpine.data('schoolProfileSettings', () => ({
-             activeTab: 'basic',
-
-             submitForm(event) {
-                 const form = event.target;
-                 const formData = new FormData(form);
-                 const action = form.getAttribute('action');
-                 const method = form.getAttribute('method') || 'POST';
-
-                 // Get CSRF token
-                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                 if (window.router && window.router.showLoading) {
-                     window.router.showLoading();
-                 }
-
-                 fetch(action, {
-                     method: method,
-                     body: formData,
-                     headers: {
-                         'X-Requested-With': 'XMLHttpRequest',
-                         'Accept': 'application/json',
-                         'X-CSRF-TOKEN': token,
-                         'Cache-Control': 'no-cache, no-store, max-age=0',
-                         'Pragma': 'no-cache'
-                     },
-                     cache: 'no-store',
-                     credentials: 'same-origin'
-                 })
-                 .then(response => {
-                     // Check content type before parsing JSON
-                     const contentType = response.headers.get('content-type');
-                     if (contentType && contentType.includes('application/json')) {
-                         return response.json();
-                     } else {
-                         // If not JSON, reload page
-                         window.location.reload();
-                         return { success: true };
-                     }
-                 })
-                 .then(data => {
-                     if (data && data.success) {
-                         // Show success message if router has showAlert
-                         if (window.router && window.router.showAlert) {
-                             window.router.showAlert(data.message || 'Saved successfully!', 'success');
-                         }
-                         // Small delay before reload to show message
-                         setTimeout(() => window.location.reload(), 1000);
-                     } else if (data && data.errors) {
-                         // Show validation errors
-                         let errorMsg = 'Validation errors:\n';
-                         for (const [field, errors] of Object.entries(data.errors)) {
-                             errorMsg += `• ${errors.join(', ')}\n`;
-                         }
-                         alert(errorMsg);
-                     } else {
-                         throw new Error(data?.message || 'Error saving!');
-                     }
-                 })
-                 .catch(error => {
-                     console.error('Error:', error);
-                     if (window.router && window.router.hideLoading) {
-                         window.router.hideLoading();
-                     }
-                     alert('Error: ' + error.message);
-                 });
-             }
-         }));
-
-         // Sidebar Data Component
-         Alpine.data('sidebarData', () => ({
-    dropdowns: {
-        students: false,
-        teachers: false,
-        marks: false,
-        reports: false,
-        system: false,
-         classes: false
-    },
-    sidebarCollapsed: false,
-    currentPath: window.location.pathname,
-
-    init() {
-        // Initialize collapsed state from localStorage
-        try {
-            this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-
-            // Load saved dropdown states from localStorage
-            const savedDropdowns = localStorage.getItem('sidebarDropdowns');
-            if (savedDropdowns) {
-                try {
-                    const parsed = JSON.parse(savedDropdowns);
-                    Object.keys(this.dropdowns).forEach(key => {
-                        if (parsed[key] !== undefined) {
-                            this.dropdowns[key] = parsed[key];
-                        }
-                    });
-                } catch (e) {
-                    console.warn('Could not parse saved dropdowns:', e);
-                }
-            }
-
-            this.applySidebarState();
-        } catch (e) {
-            console.warn('Could not read sidebar state:', e);
-            this.sidebarCollapsed = false;
-        }
-
-        // Set initial dropdown states based on current URL
-        this.updateDropdownsFromURL(this.currentPath);
-
-        // Listen for SPA navigation
-        window.addEventListener('spa:navigated', (e) => {
-            this.currentPath = e.detail.path || window.location.pathname;
-            this.updateDropdownsFromURL(this.currentPath);
-        });
-
-        // Listen for sidebar toggle from navbar
-        document.addEventListener('toggle-sidebar', () => {
-            this.toggleSidebar();
-        });
-
-        // REMOVED: The global click listener that closes dropdowns when clicking outside
-        // This is what was causing dropdowns to close when clicking outside sidebar
-        // document.addEventListener('click', (e) => {
-        //     if (!this.$el.contains(e.target)) {
-        //         this.closeAllDropdowns();
-        //     }
-        // });
-
-        // Instead, only close other dropdowns when opening a new one
-        // And persist the state
-    },
-
-    updateDropdownsFromURL(path) {
-        // Don't close all dropdowns automatically - keep current state
-        // Only update based on URL if needed
-
-        // If we're already on a page that should have a dropdown open, ensure it's open
-        if (!this.sidebarCollapsed) {
-            const urlBasedState = {
-                students: path.startsWith('/admin/students'),
-            teachers: path.startsWith('/admin/teachers'),
-            marks: path.startsWith('/admin/marks'),
-            reports: path.startsWith('/admin/report-card'),
-            system: path.startsWith('/admin/system'),
-            classes: path.startsWith('/admin/classes') ||
-                    path.startsWith('/admin/class-levels') ||
-                    path.startsWith('/admin/streams') ||
-                    path.startsWith('/admin/class-categories')
-            };
-
-            // Merge URL-based state with current state
-            Object.keys(this.dropdowns).forEach(key => {
-                // Only update if URL suggests this should be open
-                if (urlBasedState[key]) {
-                    this.dropdowns[key] = true;
-                }
-            });
-        }
-
-        this.saveDropdownState();
-    },
-
-    toggleDropdown(name, event) {
-    if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
-
-    // Toggle the clicked dropdown
-    this.dropdowns[name] = !this.dropdowns[name];
-
-    // If opening a dropdown, close all others
-    if (this.dropdowns[name]) {
-        Object.keys(this.dropdowns).forEach(key => {
-            if (key !== name) {
-                this.dropdowns[key] = false;
-            }
-        });
-    }
-
-    // Save state to localStorage
-    this.saveDropdownState();
-},
-
-    closeAllDropdowns() {
-        // This method is available but won't be called automatically
-        Object.keys(this.dropdowns).forEach(key => {
-            this.dropdowns[key] = false;
-        });
-        this.saveDropdownState();
-    },
-
-    saveDropdownState() {
-        try {
-            localStorage.setItem('sidebarDropdowns', JSON.stringify(this.dropdowns));
-        } catch (e) {
-            console.warn('Could not save dropdown state:', e);
-        }
-    },
-
-    handleLinkClick(event) {
-        // When clicking a link inside dropdown, keep the dropdown open
-        // This prevents dropdown from closing when navigating
-        if (event) {
-            event.stopPropagation();
-        }
-
-        // Find which dropdown this link belongs to
-        const linkElement = event?.target?.closest('a') || event?.target;
-        if (linkElement) {
-            const href = linkElement.getAttribute('href');
-            if (href) {
-                // Determine which dropdown should stay open
-                if (href.startsWith('/admin/students')) {
-                    this.dropdowns.students = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/teachers')) {
-                    this.dropdowns.teachers = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/marks')) {
-                    this.dropdowns.marks = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/report-card')) {
-                    this.dropdowns.reports = true;
-                    this.saveDropdownState();
-                } else if (href.startsWith('/admin/system')) {
-                    this.dropdowns.system = true;
-                    this.saveDropdownState();
-                } } else if (href.startsWith('/admin/classes') ||
-                      href.startsWith('/admin/class-levels') ||
-                      href.startsWith('/admin/streams') ||
-                      href.startsWith('/admin/class-categories')) {
-                this.dropdowns.classes = true;  // ADD THIS
-                this.saveDropdownState();
-            }
-        }
-
-        // Let SPA router handle navigation
-        // Dropdown will stay open due to saved state
-    },
-
-    isActive(path) {
-        if (!path || path === '#') return false;
-        return this.currentPath === path || this.currentPath.startsWith(path + '/');
-    },
-
-    isExactActive(path) {
-        return this.currentPath === path;
-    },
-
-    toggleSidebar() {
-        this.sidebarCollapsed = !this.sidebarCollapsed;
-
-        try {
-            localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
-        } catch (e) {
-            console.warn('Could not save sidebar state:', e);
-        }
-
-        this.applySidebarState();
-
-        // Close all dropdowns when collapsing (optional)
-        if (this.sidebarCollapsed) {
-            this.closeAllDropdowns();
-        } else {
-            // Restore dropdown states when expanding
-            this.restoreDropdownStates();
-        }
-    },
-
-    restoreDropdownStates() {
-        try {
-            const savedDropdowns = localStorage.getItem('sidebarDropdowns');
-            if (savedDropdowns) {
-                const parsed = JSON.parse(savedDropdowns);
-                Object.keys(this.dropdowns).forEach(key => {
-                    if (parsed[key] !== undefined) {
-                        this.dropdowns[key] = parsed[key];
-                    }
-                });
-            }
-        } catch (e) {
-            console.warn('Could not restore dropdown states:', e);
-        }
-    },
-
-    applySidebarState() {
-        const sidebar = document.querySelector('.sidebar');
-        const sidebarArea = document.querySelector('.sidebar-area');
-        const mainContent = document.querySelector('.main-content-area');
-        const toggleIcon = document.querySelector('#sidebarToggle i');
-
-        if (this.sidebarCollapsed) {
-            sidebar?.classList.add('collapsed');
-            sidebarArea?.classList.add('collapsed');
-            mainContent?.classList.add('collapsed');
-            toggleIcon?.classList.remove('fa-chevron-left');
-            toggleIcon?.classList.add('fa-chevron-right');
-        } else {
-            sidebar?.classList.remove('collapsed');
-            sidebarArea?.classList.remove('collapsed');
-            mainContent?.classList.remove('collapsed');
-            toggleIcon?.classList.remove('fa-chevron-right');
-            toggleIcon?.classList.add('fa-chevron-left');
-        }
-    }
-}));
-     });
-</script>
-
-    <!-- Theme Management -->
-    <script>
-        // Global theme management
-        window.appTheme = {
-            current: 'light',
-
-            init() {
-                try {
-                    this.current = localStorage.getItem('theme') || 'light';
-                } catch (e) {
-                    console.warn('Could not read theme:', e);
-                }
-                this.apply();
-            },
-
-            toggle() {
-                this.current = this.current === 'light' ? 'dark' : 'light';
-                this.apply();
-                try {
-                    localStorage.setItem('theme', this.current);
-                } catch (e) {
-                    console.warn('Could not save theme:', e);
-                }
-
-                console.log('✅ Theme:', this.current);
-
-            },
-
-            apply() {
-                document.documentElement.classList.toggle('dark', this.current === 'dark');
-            }
-        };
-
-        // Initialize theme on load
-        window.appTheme.init();
-    </script>
-
-    <!-- App Initialization & Helpers -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ asset('js/app.js') }}"></script>
+    
+    <!-- Sidebar Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ App initialized');
-
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            // Debug: Check if elements exist
+            console.log('Sidebar elements found:', {
+                toggle: !!sidebarToggle,
+                close: !!sidebarClose,
+                sidebar: !!sidebar,
+                overlay: !!overlay
+            });
+            
+            // Toggle sidebar
+            function toggleSidebar() {
+                if (sidebar && overlay) {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                }
+            }
+            
+            // Close sidebar
+            function closeSidebar() {
+                if (sidebar && overlay) {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            // Event listeners
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeSidebar();
+                });
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Close sidebar when clicking on nav links (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeSidebar();
+                }
+            });
+            
+            // Handle escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar && sidebar.classList.contains('show')) {
+                    closeSidebar();
+                }
+            });
         });
-
-        // Global helper functions
-        window.showAlert = (msg, type = 'success') => {
-            if (window.router && typeof window.router.showAlert === 'function') {
-                window.router.showAlert(msg, type);
-            } else {
-
-                console.warn('Router not available for showAlert');
-
-                alert(msg);
-            }
-        };
-
-        window.navigateTo = (path, opts = {}) => {
-            if (window.router && typeof window.router.navigate === 'function') {
-                window.router.navigate(path, opts);
-            } else {
-
-                console.warn('Router not available for navigation');
-
-                window.location.href = path;
-            }
-        };
-
-        window.refreshPage = () => {
-            if (window.router && typeof window.router.refresh === 'function') {
-                window.router.refresh();
-            } else {
-                window.location.reload();
-            }
-        };
-
-        window.toggleTheme = () => {
-            if (window.appTheme && typeof window.appTheme.toggle === 'function') {
-                window.appTheme.toggle();
-            }
-
-        };
-
-        window.toggleSidebar = function() {
-            document.dispatchEvent(new CustomEvent('toggle-sidebar'));
-        };
-
-
-
     </script>
-
+    
     @stack('scripts')
 </body>
 </html>

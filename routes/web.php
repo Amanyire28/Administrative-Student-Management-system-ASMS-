@@ -9,10 +9,8 @@ use App\Http\Controllers\ClassCategoryController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\PasswordChangeController;
-use App\Http\Controllers\SystemController;
-use App\Http\Controllers\SchoolSettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -242,134 +240,30 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'verified'])->group(function
         ->name('classes.destroy');
 
     Route::post('classes/{class}/assign-subjects', [ClassController::class, 'assignSubjects'])
-        ->middleware('permission:classes.assign-subjects')
-        ->name('classes.assign-subjects');
-
-    // ========================================
-    // SUBJECT MANAGEMENT - Protected
-    // ========================================
-    Route::middleware('permission:subjects.view')->group(function () {
-        Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
-    });
-
-    Route::get('subjects/create', [SubjectController::class, 'create'])
-        ->middleware('permission:subjects.create')
-        ->name('subjects.create');
-
-    Route::post('subjects', [SubjectController::class, 'store'])
-        ->middleware('permission:subjects.create')
-        ->name('subjects.store');
-
-    Route::get('subjects/{subject}', [SubjectController::class, 'show'])
-        ->middleware('permission:subjects.view-detail')
-        ->name('subjects.show');
-
-    Route::get('subjects/{subject}/edit', [SubjectController::class, 'edit'])
-        ->middleware('permission:subjects.edit')
-        ->name('subjects.edit');
-
-    Route::put('subjects/{subject}', [SubjectController::class, 'update'])
-        ->middleware('permission:subjects.edit')
-        ->name('subjects.update');
-
-    Route::delete('subjects/{subject}', [SubjectController::class, 'destroy'])
-        ->middleware('permission:subjects.delete')
-        ->name('subjects.destroy');
-
-    // ========================================
-    // MARKS MANAGEMENT - Protected
-    // ========================================
-    Route::middleware('permission:marks.view')->group(function () {
-        Route::get('marks', [MarkController::class, 'index'])->name('marks.index');
-    });
-
-    Route::get('marks-entry', [MarkController::class, 'create'])
-        ->middleware('permission:marks.entry')
-        ->name('marks.entry.form');
-
-    Route::post('marks-entry', [MarkController::class, 'entry'])
-        ->middleware('permission:marks.entry')
-        ->name('marks.entry');
-
-    Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])
-        ->middleware('permission:marks.entry')
-        ->name('marks.store.multiple');
-
-    Route::get('marks/{mark}/edit', [MarkController::class, 'edit'])
-        ->middleware('permission:marks.edit')
-        ->name('marks.edit');
-
-    Route::put('marks/{mark}', [MarkController::class, 'update'])
-        ->middleware('permission:marks.edit')
-        ->name('marks.update');
-
-    Route::delete('marks/{mark}', [MarkController::class, 'destroy'])
-        ->middleware('permission:marks.delete')
-        ->name('marks.destroy');
-
-    // ========================================
-    // REPORT CARD - Protected
-    // ========================================
-    Route::get('report-card/form', [ReportController::class, 'form'])
-        ->middleware('permission:reports.view')
-        ->name('report.card.form');
-
-    Route::post('report-card/generate', [ReportController::class, 'generate'])
-        ->middleware('permission:reports.generate')
-        ->name('report.card.generate');
-
-    Route::get('report-card/{student}', [ReportController::class, 'show'])
-        ->middleware('permission:reports.view')
-        ->name('report.card');
-
-    Route::get('report-card/{student}/download', [ReportController::class, 'download'])
-        ->middleware('permission:reports.export')
-        ->name('report.card.download');
-
-    // ========================================
-    // SYSTEM MANAGEMENT - Protected
-    // ========================================
-    Route::middleware('permission:system.users')->group(function () {
-        Route::get('system', [SystemController::class, 'index'])->name('system.index');
-        Route::get('system/users', [SystemController::class, 'users'])->name('system.users');
-        Route::get('system/users/{user}/permissions', [SystemController::class, 'editUserPermissions'])->name('system.user-permissions');
-        Route::post('system/users/{user}/permissions', [SystemController::class, 'updateUserPermissions'])->name('system.update-user-permissions');
-    });
-
-    Route::middleware('permission:system.roles')->group(function () {
-        Route::get('system/roles', [SystemController::class, 'roles'])->name('system.roles');
-    });
-
-    // ========================================
-    // SCHOOL SETTINGS - Protected (from HEAD)
-    // ========================================
-    Route::middleware('permission:system.settings')->group(function () {
-        // Main settings page
-        Route::get('settings/school-profile', [SchoolSettingController::class, 'edit'])
-            ->name('settings.school-profile');
-
-        // Update routes for each section
-        Route::post('settings/school-profile/basic-info', [SchoolSettingController::class, 'updateBasicInfo'])
-            ->name('settings.update-basic-info');
-
-        Route::post('settings/school-profile/contact-info', [SchoolSettingController::class, 'updateContactInfo'])
-            ->name('settings.update-contact-info');
-
-        Route::post('settings/school-profile/academic-structure', [SchoolSettingController::class, 'updateAcademicStructure'])
-            ->name('settings.update-academic-structure');
-
-        Route::post('settings/school-profile/email-config', [SchoolSettingController::class, 'updateEmailConfig'])
-            ->name('settings.update-email-config');
-
-        Route::post('settings/school-profile/report-card', [SchoolSettingController::class, 'updateReportCardSettings'])
-            ->name('settings.update-report-card');
-
-        // Delete routes
-        Route::delete('settings/school-profile/delete-logo', [SchoolSettingController::class, 'deleteLogo'])
-            ->name('settings.delete-logo');
-
-        Route::delete('settings/school-profile/delete-signature', [SchoolSettingController::class, 'deleteSignature'])
-            ->name('settings.delete-signature');
-    });
-
+         ->name('classes.assign-subjects');
+    
+    // Subject Management Routes
+    Route::resource('subjects', SubjectController::class);
+    
+    // Marks Management Routes
+    Route::resource('marks', MarkController::class);
+    Route::get('marks-entry', [MarkController::class, 'create'])->name('marks.entry.form');
+    Route::post('marks-entry', [MarkController::class, 'entry'])->name('marks.entry');
+    Route::post('marks-store-multiple', [MarkController::class, 'storeMultiple'])->name('marks.store.multiple');
+    Route::get('report-card/{student}', [MarkController::class, 'reportCard'])->name('report.card');
+    
+    // Announcement Management Routes
+    Route::resource('announcements', AnnouncementController::class);
+    Route::patch('announcements/{announcement}/toggle', [AnnouncementController::class, 'toggle'])
+         ->name('announcements.toggle');
+    
+    // Report Management Routes
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('reports/{report}/print', [ReportController::class, 'print'])->name('reports.print');
+    Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+    Route::get('api/students-by-class', [ReportController::class, 'getStudentsByClass'])->name('api.students-by-class');
+    
 });

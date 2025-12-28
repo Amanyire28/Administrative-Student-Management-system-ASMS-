@@ -13,11 +13,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PermissionSeeder::class,    // Create roles & permissions first
-            AdminUserSeeder::class,     // Then create users with roles
-            SchoolSettingSeeder::class,
-             ClassLevelSeeder::class,
-
+            UserSeeder::class,
+            AnnouncementSeeder::class,
         ]);
     }
 }
