@@ -17,15 +17,13 @@ class CreateClassSubjectTable extends Migration
             $table->id();
 
 
-            $table->foreignId('class_model_id')->constrained('class_streams')->onDelete('cascade');
-
+            $table->foreignId('class_stream_id')->constrained('class_streams')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->foreignId('teacher_id')->nullable()->constrained('teachers')->onDelete('set null');
             $table->timestamps();
 
-            // Ensure unique combination of class and subject
-
-            $table->unique(['class_model_id', 'subject_id']);
+            // Ensure unique combination of class_stream and subject
+            $table->unique(['class_stream_id', 'subject_id']);
 
         });
     }

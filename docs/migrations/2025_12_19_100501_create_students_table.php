@@ -26,14 +26,14 @@ class CreateStudentsTable extends Migration
             $table->string('parent_name')->nullable();
             $table->string('parent_phone')->nullable();
             $table->string('parent_email')->nullable();
-            $table->unsignedBigInteger('class_id')->nullable();
+            $table->unsignedBigInteger('class_stream_id')->nullable();
             $table->date('enrollment_date');
             $table->string('photo')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            // Foreign key constraint - referencing class_streams table
-            $table->foreign('class_id')->references('id')->on('class_streams')->onDelete('set null');
+            // Foreign key constraint - references class_streams table
+            $table->foreign('class_stream_id')->references('id')->on('class_streams')->onDelete('set null');
         });
     }
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateStreamsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,12 @@ class CreateStreamsTable extends Migration
      */
     public function up()
     {
-        Schema::create('streams', function (Blueprint $table) {
+        Schema::create('school_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // e.g., "A", "B", "Red", "Lions"
-            $table->text('description')->nullable(); // Optional description
-            $table->integer('sort_order')->default(0); // For ordering streams
+            $table->string('name')->unique(); // e.g., 'Nursery', 'Primary', 'Secondary - O Level'
+            $table->text('description')->nullable(); // Description of the school type
+            $table->json('default_classes')->nullable(); // Default classes for this type
+            $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -30,6 +31,6 @@ class CreateStreamsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('streams');
+        Schema::dropIfExists('school_types');
     }
-}
+};

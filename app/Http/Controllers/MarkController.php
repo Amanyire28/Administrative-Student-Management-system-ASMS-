@@ -35,7 +35,7 @@ class MarkController extends Controller
     public function entry(Request $request)
     {
         $validated = $request->validate([
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'required|exists:class_streams,id',
             'subject_id' => 'required|exists:subjects,id',
             'term' => 'required|string',
             'academic_year' => 'required|string'
@@ -64,7 +64,7 @@ class MarkController extends Controller
     public function storeMultiple(Request $request)
     {
         $validated = $request->validate([
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'required|exists:class_streams,id',
             'subject_id' => 'required|exists:subjects,id',
             'term' => 'required|string',
             'academic_year' => 'required|string',
@@ -104,7 +104,7 @@ class MarkController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'subject_id' => 'required|exists:subjects,id',
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'required|exists:class_streams,id',
             'term' => 'required|string',
             'academic_year' => 'required|string',
             'marks_obtained' => 'required|numeric|min:0|max:100',
@@ -146,7 +146,7 @@ class MarkController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'subject_id' => 'required|exists:subjects,id',
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'required|exists:class_streams,id',
             'term' => 'required|string',
             'academic_year' => 'required|string',
             'marks_obtained' => 'required|numeric|min:0|max:100',

@@ -243,7 +243,7 @@ public function storeClassAssignments(Request $request)
     $validator = Validator::make($request->all(), [
         'teacher_id' => 'required|exists:teachers,id',
         'class_assignments' => 'nullable|array',
-        'class_assignments.*.class_id' => 'required|exists:classes,id',
+        'class_assignments.*.class_id' => 'required|exists:class_streams,id',
         'class_assignments.*.is_class_teacher' => 'nullable|boolean',
     ]);
 
@@ -722,7 +722,7 @@ public function assignClasses(Request $request, Teacher $teacher)
 
     $validator = Validator::make($request->all(), [
         'class_assignments' => 'required|array',
-        'class_assignments.*.class_id' => 'required|exists:classes,id',
+        'class_assignments.*.class_id' => 'required|exists:class_streams,id',
         'class_assignments.*.is_class_teacher' => 'nullable|boolean',
     ]);
 
@@ -849,7 +849,7 @@ public function assignSubjects(Request $request, Teacher $teacher)
         abort_unless(auth()->user()->can('teachers.edit'), 403);
 
         $validator = Validator::make($request->all(), [
-            'class_id' => 'required|exists:classes,id',
+            'class_id' => 'required|exists:class_streams,id',
         ]);
 
         if ($validator->fails()) {
@@ -1115,7 +1115,7 @@ public function updateAssignments(Request $request, Teacher $teacher)
 
     $validator = Validator::make($request->all(), [
         'class_assignments' => 'nullable|array',
-        'class_assignments.*.class_id' => 'required_with:class_assignments|exists:classes,id',
+        'class_assignments.*.class_id' => 'required_with:class_assignments|exists:class_streams,id',
         'class_assignments.*.is_class_teacher' => 'nullable|boolean',
         'subject_ids' => 'nullable|array',
         'subject_ids.*' => 'exists:subjects,id',

@@ -9,13 +9,12 @@ class ClassModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'classes';
+    protected $table = 'class_streams';
 
     protected $fillable = [
         'name',
         'class_level_id',
         'stream_id',
-        'classroom',
         'class_teacher_id',
         'is_active'
     ];

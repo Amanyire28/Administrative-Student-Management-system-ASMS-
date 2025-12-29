@@ -18,8 +18,8 @@ class TeacherPivotTables extends Migration
             throw new \Exception('Teachers table must be created first! Run the CreateTeachersTableFirst migration.');
         }
 
-        if (!Schema::hasTable('classes')) {
-            throw new \Exception('Classes table does not exist');
+        if (!Schema::hasTable('class_streams')) {
+            throw new \Exception('Class streams table does not exist');
         }
 
         if (!Schema::hasTable('subjects')) {
@@ -48,7 +48,7 @@ class TeacherPivotTables extends Migration
 
                 $table->foreign('class_id')
                       ->references('id')
-                      ->on('classes')
+                      ->on('class_streams')
                       ->onDelete('cascade');
             });
         }

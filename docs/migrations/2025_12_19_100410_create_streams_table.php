@@ -16,7 +16,7 @@ class CreateStreamsTable extends Migration
         Schema::create('streams', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique(); // e.g., "A", "B", "Red", "Lions"
-            $table->text('description')->nullable(); // Optional description
+            $table->string('description')->nullable(); // Optional description
             $table->integer('sort_order')->default(0); // For ordering streams
             $table->boolean('is_active')->default(true);
             $table->timestamps();

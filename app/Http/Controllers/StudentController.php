@@ -61,7 +61,7 @@ class StudentController extends Controller
             'parent_name' => 'nullable|string|max:255',
             'parent_phone' => 'nullable|string|max:20',
             'parent_email' => 'nullable|email',
-            'class_id' => 'nullable|exists:classes,id',
+            'class_id' => 'nullable|exists:class_streams,id',
             'enrollment_date' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
@@ -113,7 +113,7 @@ class StudentController extends Controller
             'parent_name' => 'nullable|string|max:255',
             'parent_phone' => 'nullable|string|max:20',
             'parent_email' => 'nullable|email',
-            'class_id' => 'nullable|exists:classes,id',
+            'class_id' => 'nullable|exists:class_streams,id',
             'enrollment_date' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'is_active' => 'boolean'
