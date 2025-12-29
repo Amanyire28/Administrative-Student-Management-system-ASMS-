@@ -355,6 +355,18 @@
         <div id="step3" class="step-content hidden">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Select Classes</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose which classes to create for each school type:</p>
+            
+            <!-- Loading indicator -->
+            <div id="classSelectionLoading" class="text-center py-8 hidden">
+                <div class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-maroon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Loading available classes...</span>
+                </div>
+            </div>
+            
             <div id="classSelectionContainer"></div>
         </div>
 
@@ -480,7 +492,8 @@ let setupWizardState = {
     selectedClasses: {},
     hasStreams: false,
     streams: [],
-    classStreamAssignments: {}
+    classStreamAssignments: {},
+    classOptionsCache: {} // Cache for class options
 };
 
 // Modal functions
@@ -660,6 +673,22 @@ function validateCurrentStep() {
 
 // Load class options based on selected school types
 async function loadClassOptions() {
+    const loadingEl = document.getElementById('classSelectionLoading');
+    const containerEl = document.getElementById('classSelectionContainer');
+    
+    // Create cache key from selected school types
+    const cacheKey = setupWizardState.schoolTypes.sort().join(',');
+    
+    // Check if we have cached data
+    if (setupWizardState.classOptionsCache[cacheKey]) {
+        renderClassOptions(setupWizardState.classOptionsCache[cacheKey]);
+        return;
+    }
+    
+    // Show loading, hide container
+    loadingEl.classList.remove('hidden');
+    containerEl.style.display = 'none';
+    
     try {
         const response = await fetch('{{ route("api.classes.setup-wizard.class-options") }}', {
             method: 'POST',
@@ -673,10 +702,22 @@ async function loadClassOptions() {
         });
         
         const classOptions = await response.json();
+        
+        // Cache the result
+        setupWizardState.classOptionsCache[cacheKey] = classOptions;
+        
+        // Hide loading, show container
+        loadingEl.classList.add('hidden');
+        containerEl.style.display = 'block';
+        
         renderClassOptions(classOptions);
     } catch (error) {
         console.error('Error loading class options:', error);
-        alert('Error loading class options. Please try again.');
+        
+        // Hide loading, show error
+        loadingEl.classList.add('hidden');
+        containerEl.innerHTML = '<div class="text-center py-4 text-red-600">Error loading class options. Please try again.</div>';
+        containerEl.style.display = 'block';
     }
 }
 
@@ -689,27 +730,60 @@ function renderClassOptions(classOptions) {
         categoryDiv.className = 'mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg';
         
         categoryDiv.innerHTML = `
-            <h4 class="font-medium text-gray-900 dark:text-white mb-3">${categoryName}</h4>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="font-medium text-gray-900 dark:text-white">${categoryName}</h4>
+                <div class="flex gap-2">
+                    <button type="button" onclick="selectAllClasses('${categoryName}')" class="text-xs text-maroon hover:text-maroon-dark">
+                        <i class="fas fa-check-square mr-1"></i>Select All
+                    </button>
+                    <button type="button" onclick="deselectAllClasses('${categoryName}')" class="text-xs text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-square mr-1"></i>Deselect All
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3" id="classes-grid-${categoryName}">
                 ${classOptions[categoryName].map(className => `
                     <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <input type="checkbox" name="classes_${categoryName}" value="${className}" class="mr-2 text-maroon">
+                        <input type="checkbox" name="classes_${categoryName}" value="${className}" class="mr-2 text-maroon" checked>
                         <span class="text-sm">${className}</span>
+                        <button type="button" onclick="removeDefaultClass(this)" class="ml-auto text-red-500 hover:text-red-700 text-xs" title="Remove this class">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </label>
                 `).join('')}
+            </div>
+            <div class="border-t border-gray-200 dark:border-gray-600 pt-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <input type="text" id="custom-class-${categoryName}" placeholder="Add custom class (e.g., Pre-Unit)" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
+                    <button type="button" onclick="addCustomClass('${categoryName}')" class="px-3 py-2 bg-maroon text-white rounded-md text-sm hover:bg-maroon-dark">
+                        <i class="fas fa-plus mr-1"></i>Add
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Add custom classes specific to your school</p>
             </div>
         `;
         
         container.appendChild(categoryDiv);
         
-        // Add event listeners
+        // Add event listeners for existing checkboxes
         const checkboxes = categoryDiv.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(cb => {
             cb.addEventListener('change', function() {
                 updateSelectedClasses();
             });
         });
+        
+        // Handle Enter key in custom class input
+        const customInput = categoryDiv.querySelector(`#custom-class-${categoryName}`);
+        customInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addCustomClass(categoryName);
+            }
+        });
     });
+    
+    // Pre-select all classes and update state
+    updateSelectedClasses();
 }
 
 function updateSelectedClasses() {
@@ -732,6 +806,78 @@ function getSchoolTypeName(type) {
         'secondary_a': 'Secondary - A Level'
     };
     return mapping[type] || type;
+}
+
+// Class management functions
+function selectAllClasses(categoryName) {
+    const checkboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+    });
+    updateSelectedClasses();
+}
+
+function deselectAllClasses(categoryName) {
+    const checkboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    updateSelectedClasses();
+}
+
+function addCustomClass(categoryName) {
+    const input = document.getElementById(`custom-class-${categoryName}`);
+    const className = input.value.trim();
+    
+    if (!className) {
+        alert('Please enter a class name.');
+        return;
+    }
+    
+    // Check if class already exists
+    const existingCheckboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+    const existingClasses = Array.from(existingCheckboxes).map(cb => cb.value.toLowerCase());
+    
+    if (existingClasses.includes(className.toLowerCase())) {
+        alert('This class already exists.');
+        return;
+    }
+    
+    // Add the new class to the grid
+    const grid = document.getElementById(`classes-grid-${categoryName}`);
+    const label = document.createElement('label');
+    label.className = 'flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 bg-green-50 dark:bg-green-900/20';
+    label.innerHTML = `
+        <input type="checkbox" name="classes_${categoryName}" value="${className}" class="mr-2 text-maroon" checked>
+        <span class="text-sm">${className}</span>
+        <button type="button" onclick="removeCustomClass(this)" class="ml-auto text-red-500 hover:text-red-700 text-xs" title="Remove this custom class">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    
+    grid.appendChild(label);
+    
+    // Add event listener to the new checkbox
+    const checkbox = label.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', function() {
+        updateSelectedClasses();
+    });
+    
+    // Clear input and update state
+    input.value = '';
+    updateSelectedClasses();
+}
+
+function removeDefaultClass(button) {
+    if (confirm('Are you sure you want to remove this default class?')) {
+        button.closest('label').remove();
+        updateSelectedClasses();
+    }
+}
+
+function removeCustomClass(button) {
+    button.closest('label').remove();
+    updateSelectedClasses();
 }
 
 // Stream management functions
