@@ -380,22 +380,22 @@
 
             <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($classLevels ?? [] as $classLevel)
+                    @foreach($classStreams ?? [] as $classLevelName => $streams)
                         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">{{ $classLevel->name }}</h4>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">{{ $classLevelName }}</h4>
                             <div class="space-y-2">
-                                @foreach($classLevel->classes ?? [] as $class)
+                                @foreach($streams as $classStream)
                                     <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                         <label class="flex items-center cursor-pointer">
                                             <input type="checkbox"
-                                                   name="class_assignments[{{ $loop->index }}][class_id]"
-                                                   value="{{ $class->id }}"
+                                                   name="class_assignments[{{ $loop->parent->index }}_{{ $loop->index }}][class_stream_id]"
+                                                   value="{{ $classStream->id }}"
                                                    class="class-checkbox h-5 w-5 text-maroon rounded focus:ring-maroon">
-                                            <span class="ml-2 text-gray-700 dark:text-gray-300">{{ $class->name }}</span>
+                                            <span class="ml-2 text-gray-700 dark:text-gray-300">{{ $classStream->name }}</span>
                                         </label>
                                         <div class="flex items-center space-x-2">
                                             <input type="checkbox"
-                                                   name="class_assignments[{{ $loop->index }}][is_class_teacher]"
+                                                   name="class_assignments[{{ $loop->parent->index }}_{{ $loop->index }}][is_class_teacher]"
                                                    value="1"
                                                    class="class-teacher-checkbox h-4 w-4 text-maroon rounded focus:ring-maroon"
                                                    disabled>
@@ -682,13 +682,13 @@
         const classAssignments = [];
 
         classCheckboxes.forEach((checkbox, index) => {
-            const classId = checkbox.value;
+            const classStreamId = checkbox.value;
             const classTeacherCheckbox = checkbox.closest('.flex.items-center.justify-between')
                 .querySelector('.class-teacher-checkbox');
             const isClassTeacher = classTeacherCheckbox.checked;
 
             classAssignments.push({
-                class_id: classId,
+                class_stream_id: classStreamId,
                 is_class_teacher: isClassTeacher ? 1 : 0
             });
         });

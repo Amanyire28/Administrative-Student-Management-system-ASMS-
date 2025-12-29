@@ -26,27 +26,27 @@ class TeacherPivotTables extends Migration
             throw new \Exception('Subjects table does not exist');
         }
 
-        // Create class_teacher table
-        if (!Schema::hasTable('class_teacher')) {
-            Schema::create('class_teacher', function (Blueprint $table) {
+        // Create class_stream_teacher table
+        if (!Schema::hasTable('class_stream_teacher')) {
+            Schema::create('class_stream_teacher', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('teacher_id');
-                $table->unsignedBigInteger('class_id');
+                $table->unsignedBigInteger('class_stream_id');
                 $table->boolean('is_class_teacher')->default(false);
                 $table->timestamps();
 
-                $table->unique(['teacher_id', 'class_id']);
+                $table->unique(['teacher_id', 'class_stream_id']);
                 $table->index(['teacher_id', 'is_class_teacher']);
             });
 
             // Add foreign keys separately
-            Schema::table('class_teacher', function (Blueprint $table) {
+            Schema::table('class_stream_teacher', function (Blueprint $table) {
                 $table->foreign('teacher_id')
                       ->references('id')
                       ->on('teachers')
                       ->onDelete('cascade');
 
-                $table->foreign('class_id')
+                $table->foreign('class_stream_id')
                       ->references('id')
                       ->on('class_streams')
                       ->onDelete('cascade');
@@ -85,7 +85,7 @@ class TeacherPivotTables extends Migration
     public function down()
     {
         Schema::dropIfExists('teacher_subject');
-        Schema::dropIfExists('class_teacher');
+        Schema::dropIfExists('class_stream_teacher');
     }
 
 }

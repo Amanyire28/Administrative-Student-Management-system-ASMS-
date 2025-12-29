@@ -83,15 +83,48 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'class_level_id' => 'required|exists:class_levels,id',
-            'stream_id' => 'nullable|exists:streams,id',
+            'class_level_name' => 'required|string|max:255',
+            'school_type_name' => 'required|string|max:255',
+            'stream_name' => 'nullable|string|max:255',
             'name' => 'required|string|max:255|unique:class_streams,name',
             'class_teacher_id' => 'nullable|exists:teachers,id',
         ]);
         
+        // Find or create school type
+        $schoolType = SchoolType::firstOrCreate([
+            'name' => $request->school_type_name
+        ], [
+            'description' => 'Custom school type',
+            'default_classes' => [],
+            'sort_order' => SchoolType::max('sort_order') + 1 ?? 1,
+            'is_active' => true
+        ]);
+        
+        // Find or create class level
+        $classLevel = ClassLevel::firstOrCreate([
+            'name' => $request->class_level_name,
+            'school_type_id' => $schoolType->id
+        ], [
+            'sort_order' => ClassLevel::where('school_type_id', $schoolType->id)->max('sort_order') + 1 ?? 1,
+            'is_active' => true
+        ]);
+        
+        // Find or create stream if provided
+        $stream = null;
+        if ($request->filled('stream_name')) {
+            $stream = Stream::firstOrCreate([
+                'name' => $request->stream_name
+            ], [
+                'description' => 'Custom stream',
+                'sort_order' => Stream::max('sort_order') + 1 ?? 1,
+                'is_active' => true
+            ]);
+        }
+        
+        // Create class stream
         ClassStream::create([
-            'class_level_id' => $request->class_level_id,
-            'stream_id' => $request->stream_id,
+            'class_level_id' => $classLevel->id,
+            'stream_id' => $stream ? $stream->id : null,
             'name' => $request->name,
             'class_teacher_id' => $request->class_teacher_id,
             'is_active' => true,

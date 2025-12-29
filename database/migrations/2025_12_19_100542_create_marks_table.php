@@ -17,7 +17,7 @@ class CreateMarksTable extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
-            $table->foreignId('class_id')->constrained('class_streams')->onDelete('cascade');
+            $table->foreignId('class_stream_id')->constrained('class_streams')->onDelete('cascade');
             $table->string('term'); // e.g., "Term 1", "Semester 1"
             $table->string('academic_year'); // e.g., "2025-2026"
             $table->decimal('marks_obtained', 5, 2); // e.g., 85.50

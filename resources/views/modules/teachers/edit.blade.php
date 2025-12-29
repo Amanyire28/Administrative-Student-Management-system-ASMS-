@@ -436,24 +436,24 @@
                         $classIndex = 0;
                     @endphp
 
-                    @foreach($classLevels ?? [] as $classLevel)
+                    @foreach($classStreams ?? [] as $classLevelName => $streams)
                         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">{{ $classLevel->name }}</h4>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">{{ $classLevelName }}</h4>
                             <div class="space-y-2">
-                                @foreach($classLevel->classes ?? [] as $class)
+                                @foreach($streams as $classStream)
                                     @php
-                                        $isAssigned = in_array($class->id, $teacherClassIds);
-                                        $isClassTeacher = in_array($class->id, $teacherClassTeacherIds);
+                                        $isAssigned = in_array($classStream->id, $teacherClassIds);
+                                        $isClassTeacher = in_array($classStream->id, $teacherClassTeacherIds);
                                     @endphp
                                     <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                         <label class="flex items-center cursor-pointer">
                                             <input type="checkbox"
-                                                   name="class_assignments[{{ $classIndex }}][class_id]"
-                                                   value="{{ $class->id }}"
+                                                   name="class_assignments[{{ $classIndex }}][class_stream_id]"
+                                                   value="{{ $classStream->id }}"
                                                    {{ $isAssigned ? 'checked' : '' }}
                                                    class="class-checkbox h-5 w-5 text-maroon rounded focus:ring-maroon"
                                                    data-index="{{ $classIndex }}">
-                                            <span class="ml-2 text-gray-700 dark:text-gray-300">{{ $class->name }}</span>
+                                            <span class="ml-2 text-gray-700 dark:text-gray-300">{{ $classStream->name }}</span>
                                         </label>
                                         <div class="flex items-center space-x-2">
                                             <input type="checkbox"
@@ -743,13 +743,13 @@
         const classAssignments = [];
 
         classCheckboxes.forEach((checkbox) => {
-            const classId = checkbox.value;
+            const classStreamId = checkbox.value;
             const index = checkbox.getAttribute('data-index');
             const classTeacherCheckbox = document.querySelector(`.class-teacher-checkbox[data-index="${index}"]`);
             const isClassTeacher = classTeacherCheckbox ? classTeacherCheckbox.checked : false;
 
             classAssignments.push({
-                class_id: classId,
+                class_stream_id: classStreamId,
                 is_class_teacher: isClassTeacher ? 1 : 0
             });
         });

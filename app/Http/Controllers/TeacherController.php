@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\ClassModel;
+use App\Models\ClassStream;
 use App\Models\Subject;
 use App\Models\ClassLevel;
 use App\Notifications\TeacherAssignmentsSummary;
@@ -58,7 +59,16 @@ class TeacherController extends Controller
 {
     abort_unless(auth()->user()->can('teachers.create'), 403);
 
-    $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+    // Get all class streams grouped by class level
+    $classStreams = ClassStream::with(['classLevel.schoolType', 'stream'])
+        ->whereHas('classLevel', function($query) {
+            $query->where('is_active', true);
+        })
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get()
+        ->groupBy('classLevel.name');
+        
     $subjects = Subject::active()->orderBy('name')->get();
 
     // Fetch roles from database (excluding Super Admin probably)
@@ -66,7 +76,7 @@ class TeacherController extends Controller
         ->orderBy('name')
         ->get();
 
-    return view('modules.teachers.create', compact('classLevels', 'subjects', 'roles'));
+    return view('modules.teachers.create', compact('classStreams', 'subjects', 'roles'));
 }
 
     /**
@@ -243,7 +253,7 @@ public function storeClassAssignments(Request $request)
     $validator = Validator::make($request->all(), [
         'teacher_id' => 'required|exists:teachers,id',
         'class_assignments' => 'nullable|array',
-        'class_assignments.*.class_id' => 'required|exists:class_streams,id',
+        'class_assignments.*.class_stream_id' => 'required|exists:class_streams,id',
         'class_assignments.*.is_class_teacher' => 'nullable|boolean',
     ]);
 
@@ -266,18 +276,18 @@ public function storeClassAssignments(Request $request)
         if ($request->has('class_assignments')) {
             foreach ($request->class_assignments as $index => $assignment) {
                 Log::info("Assignment {$index}:", $assignment);
-                $class = ClassModel::find($assignment['class_id']);
+                $classStream = ClassStream::find($assignment['class_stream_id']);
                 $isClassTeacher = $assignment['is_class_teacher'] ?? false;
 
-                if ($class) {
+                if ($classStream) {
                     // Collect class data for summary notification
                     $classesData[] = [
-                        'class' => $class,
+                        'class' => $classStream,
                         'is_class_teacher' => $isClassTeacher
                     ];
                 }
 
-                $assignments[$assignment['class_id']] = [
+                $assignments[$assignment['class_stream_id']] = [
                     'is_class_teacher' => $isClassTeacher
                 ];
             }
@@ -500,14 +510,23 @@ public function edit(Teacher $teacher)
         }
     }
 
-    $classLevels = ClassLevel::with('category')->active()->ordered()->get();
+    // Get all class streams grouped by class level
+    $classStreams = ClassStream::with(['classLevel.schoolType', 'stream'])
+        ->whereHas('classLevel', function($query) {
+            $query->where('is_active', true);
+        })
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get()
+        ->groupBy('classLevel.name');
+        
     $subjects = Subject::active()->orderBy('name')->get();
 
     $roles = \Spatie\Permission\Models\Role::where('name', '!=', 'Super Admin')
         ->orderBy('name')
         ->get();
 
-    return view('modules.teachers.edit', compact('teacher', 'classLevels', 'subjects', 'roles'));
+    return view('modules.teachers.edit', compact('teacher', 'classStreams', 'subjects', 'roles'));
 }
 
     /**
@@ -722,7 +741,7 @@ public function assignClasses(Request $request, Teacher $teacher)
 
     $validator = Validator::make($request->all(), [
         'class_assignments' => 'required|array',
-        'class_assignments.*.class_id' => 'required|exists:class_streams,id',
+        'class_assignments.*.class_stream_id' => 'required|exists:class_streams,id',
         'class_assignments.*.is_class_teacher' => 'nullable|boolean',
     ]);
 
@@ -739,18 +758,18 @@ public function assignClasses(Request $request, Teacher $teacher)
         $classesData = []; // Collect classes for summary notification
 
         foreach ($request->class_assignments as $assignment) {
-            $class = ClassModel::find($assignment['class_id']);
+            $classStream = ClassStream::find($assignment['class_stream_id']);
             $isClassTeacher = $assignment['is_class_teacher'] ?? false;
 
-            if ($class) {
+            if ($classStream) {
                 // Collect class data for summary notification
                 $classesData[] = [
-                    'class' => $class,
+                    'class' => $classStream,
                     'is_class_teacher' => $isClassTeacher
                 ];
             }
 
-            $assignments[$assignment['class_id']] = [
+            $assignments[$assignment['class_stream_id']] = [
                 'is_class_teacher' => $isClassTeacher
             ];
         }

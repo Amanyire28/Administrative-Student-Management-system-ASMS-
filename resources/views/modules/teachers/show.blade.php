@@ -250,7 +250,7 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">
-                                            {{ $class->classLevel->category->name ?? 'N/A' }}
+                                            {{ $class->classLevel->schoolType->name ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3">

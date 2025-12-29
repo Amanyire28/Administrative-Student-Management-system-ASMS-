@@ -52,6 +52,12 @@ class ClassSetupWizardController extends Controller
                         'S5', 'S6'
                     ];
                     break;
+                
+                case 'other':
+                    $classOptions['Other'] = [
+                        // No default classes for "Other" - users will add custom ones
+                    ];
+                    break;
             }
         }
 

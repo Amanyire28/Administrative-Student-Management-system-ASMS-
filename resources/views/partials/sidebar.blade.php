@@ -151,8 +151,8 @@
         <div class="relative">
             <button @click="toggleDropdown('classes', $event)"
                 :class="{
-                    'bg-white !text-maroon font-semibold': isActive('/admin/classes') || isActive('/admin/class-levels') || isActive('/admin/streams'),
-                    'text-white/90 hover:bg-white/20': !isActive('/admin/classes') && !isActive('/admin/class-levels') && !isActive('/admin/streams')
+                    'bg-white !text-maroon font-semibold': isActive('/admin/classes'),
+                    'text-white/90 hover:bg-white/20': !isActive('/admin/classes')
                 }"
                 class="nav-link flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200">
                 <div class="flex items-center space-x-3">
@@ -183,36 +183,18 @@
                     <i class="fas fa-list w-4 text-center"></i>
                     <span>All Classes</span>
                 </a>
-                <a href="/admin/class-categories"
+                @canany('classes.create')
+                <a href="/admin/classes/create"
                 @click="handleLinkClick()"
                 :class="{
-                    'bg-white !text-maroon font-semibold': isActive('/admin/class-categories'),
-                    'text-white/90 hover:bg-white/20': !isActive('/admin/class-categories')
+                    'bg-white !text-maroon font-semibold': isExactActive('/admin/classes/create'),
+                    'text-white/90 hover:bg-white/20': !isExactActive('/admin/classes/create')
                 }"
                 class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-                    <i class="fas fa-tags w-4 text-center"></i>
-                    <span>Categories</span>
+                    <i class="fas fa-plus w-4 text-center"></i>
+                    <span>Add New</span>
                 </a>
-                <a href="/admin/class-levels"
-                @click="handleLinkClick()"
-                :class="{
-                    'bg-white !text-maroon font-semibold': isActive('/admin/class-levels'),
-                    'text-white/90 hover:bg-white/20': !isActive('/admin/class-levels')
-                }"
-                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-                    <i class="fas fa-layer-group w-4 text-center"></i>
-                    <span>Class Levels</span>
-                </a>
-                <a href="/admin/streams"
-                @click="handleLinkClick()"
-                :class="{
-                    'bg-white !text-maroon font-semibold': isActive('/admin/streams'),
-                    'text-white/90 hover:bg-white/20': !isActive('/admin/streams')
-                }"
-                class="flex items-center space-x-3 p-2 rounded text-sm transition-colors">
-                    <i class="fas fa-stream w-4 text-center"></i>
-                    <span>Streams</span>
-                </a>
+                @endcanany
             </div>
         </div>
         @endcanany

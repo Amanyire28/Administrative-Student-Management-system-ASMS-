@@ -40,8 +40,11 @@ class StudentController extends Controller
     public function create(Request $request)
     {
         $classes = ClassModel::where('is_active', true)->get();
+        
+        // Handle class_id parameter from URL for backward compatibility
+        $selectedClassId = $request->get('class_id');
 
-        return view('modules.students.create', compact('classes'));
+        return view('modules.students.create', compact('classes', 'selectedClassId'));
     }
 
     /**
@@ -61,10 +64,15 @@ class StudentController extends Controller
             'parent_name' => 'nullable|string|max:255',
             'parent_phone' => 'nullable|string|max:20',
             'parent_email' => 'nullable|email',
-            'class_id' => 'nullable|exists:class_streams,id',
+            'class_stream_id' => 'nullable|exists:class_streams,id',
             'enrollment_date' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
+
+        // Handle backward compatibility for class_id parameter
+        if ($request->has('class_id') && !$request->has('class_stream_id')) {
+            $validated['class_stream_id'] = $request->get('class_id');
+        }
 
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('students', 'public');
@@ -113,7 +121,7 @@ class StudentController extends Controller
             'parent_name' => 'nullable|string|max:255',
             'parent_phone' => 'nullable|string|max:20',
             'parent_email' => 'nullable|email',
-            'class_id' => 'nullable|exists:class_streams,id',
+            'class_stream_id' => 'nullable|exists:class_streams,id',
             'enrollment_date' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'is_active' => 'boolean'

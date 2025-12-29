@@ -29,61 +29,100 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Class Level -->
                 <div>
-                    <label for="class_level_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="class_level_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Class Level <span class="text-red-500">*</span>
                     </label>
-                    <select id="class_level_id" 
-                            name="class_level_id"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            required>
-                        <option value="">Select Class Level</option>
+                    <input type="text" 
+                           id="class_level_name" 
+                           name="class_level_name" 
+                           value="{{ old('class_level_name') }}"
+                           list="class_levels_list"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                           placeholder="e.g., P1, S2, Baby, Top"
+                           required>
+                    <datalist id="class_levels_list">
                         @foreach($classLevels ?? [] as $level)
-                            <option value="{{ $level->id }}" {{ old('class_level_id') == $level->id ? 'selected' : '' }}>
+                            <option value="{{ $level->name }}">
                                 {{ $level->name }}
                                 @if($level->schoolType)
                                     ({{ $level->schoolType->name }})
                                 @endif
                             </option>
                         @endforeach
-                    </select>
-                    @error('class_level_id')
+                    </datalist>
+                    @error('class_level_name')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
-                    @if(($classLevels ?? collect())->count() == 0)
-                        <p class="text-yellow-600 text-sm mt-1">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            No class levels available. <a href="{{ route('classes.index') }}" class="underline">Set up class structure first</a>.
-                        </p>
-                    @endif
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Type a new class level or select from existing ones
+                    </p>
+                </div>
+
+                <!-- School Type -->
+                <div>
+                    <label for="school_type_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        School Type <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="school_type_name" 
+                           name="school_type_name" 
+                           value="{{ old('school_type_name') }}"
+                           list="school_types_list"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                           placeholder="e.g., Primary, Secondary, Nursery"
+                           required>
+                    <datalist id="school_types_list">
+                        @php
+                            $schoolTypes = collect($classLevels ?? [])->map(fn($level) => $level->schoolType)->filter()->unique('id');
+                        @endphp
+                        @foreach($schoolTypes as $schoolType)
+                            <option value="{{ $schoolType->name }}">{{ $schoolType->name }}</option>
+                        @endforeach
+                        <option value="Primary">Primary</option>
+                        <option value="Secondary - O Level">Secondary - O Level</option>
+                        <option value="Secondary - A Level">Secondary - A Level</option>
+                        <option value="Nursery">Nursery</option>
+                        <option value="Other">Other</option>
+                    </datalist>
+                    @error('school_type_name')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Type a new school type or select from existing ones
+                    </p>
                 </div>
 
                 <!-- Stream -->
                 <div>
-                    <label for="stream_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label for="stream_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Stream
                     </label>
-                    <select id="stream_id" 
-                            name="stream_id"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                        <option value="">Select Stream (Optional)</option>
+                    <input type="text" 
+                           id="stream_name" 
+                           name="stream_name" 
+                           value="{{ old('stream_name') }}"
+                           list="streams_list"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                           placeholder="e.g., A, B, Blue, Red (Optional)">
+                    <datalist id="streams_list">
                         @foreach($streams ?? [] as $stream)
-                            <option value="{{ $stream->id }}" {{ old('stream_id') == $stream->id ? 'selected' : '' }}>
+                            <option value="{{ $stream->name }}">
                                 {{ $stream->name }}
                                 @if($stream->description)
                                     ({{ $stream->description }})
                                 @endif
                             </option>
                         @endforeach
-                    </select>
-                    @error('stream_id')
+                    </datalist>
+                    @error('stream_name')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
-                    @if(($streams ?? collect())->count() == 0)
-                        <p class="text-yellow-600 text-sm mt-1">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            No streams available. <a href="{{ route('classes.index') }}" class="underline">Set up class structure first</a>.
-                        </p>
-                    @endif
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Optional: Type a new stream or select from existing ones
+                    </p>
                 </div>
 
                 <!-- Class Teacher -->
@@ -106,8 +145,8 @@
                     @enderror
                 </div>
 
-                <!-- Class Name -->
-                <div>
+                <!-- Class Name (Auto-generated) -->
+                <div class="md:col-span-2">
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Class Name <span class="text-red-500">*</span>
                     </label>
@@ -116,11 +155,16 @@
                            name="name" 
                            value="{{ old('name') }}"
                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                           placeholder="e.g., P1A, S2 Blue"
-                           required>
+                           placeholder="Will be auto-generated from Class Level + Stream"
+                           required
+                           readonly>
                     @error('name')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
+                    <p class="text-gray-500 text-xs mt-1">
+                        <i class="fas fa-magic mr-1"></i>
+                        This will be automatically generated based on your Class Level and Stream selections
+                    </p>
                 </div>
             </div>
 
@@ -139,4 +183,45 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classLevelInput = document.getElementById('class_level_name');
+    const streamInput = document.getElementById('stream_name');
+    const classNameInput = document.getElementById('name');
+    
+    function generateClassName() {
+        const classLevel = classLevelInput.value.trim();
+        const stream = streamInput.value.trim();
+        
+        if (classLevel) {
+            if (stream) {
+                classNameInput.value = `${classLevel} ${stream}`;
+            } else {
+                classNameInput.value = classLevel;
+            }
+        } else {
+            classNameInput.value = '';
+        }
+    }
+    
+    // Auto-generate class name when inputs change
+    classLevelInput.addEventListener('input', generateClassName);
+    streamInput.addEventListener('input', generateClassName);
+    
+    // Allow manual editing of class name
+    classNameInput.addEventListener('focus', function() {
+        this.removeAttribute('readonly');
+        this.placeholder = 'Edit class name manually';
+    });
+    
+    classNameInput.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+            this.setAttribute('readonly', true);
+            this.placeholder = 'Will be auto-generated from Class Level + Stream';
+            generateClassName();
+        }
+    });
+});
+</script>
 @endsection

@@ -12,7 +12,7 @@ class Mark extends Model
     protected $fillable = [
         'student_id',
         'subject_id',
-        'class_id',
+        'class_stream_id',
         'term',
         'academic_year',
         'marks_obtained',
@@ -37,9 +37,15 @@ class Mark extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    public function classStream()
+    {
+        return $this->belongsTo(ClassStream::class, 'class_stream_id');
+    }
+
+    // Backward compatibility alias
     public function class()
     {
-        return $this->belongsTo(ClassModel::class, 'class_id');
+        return $this->classStream();
     }
 
     // Accessors

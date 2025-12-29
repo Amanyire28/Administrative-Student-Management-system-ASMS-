@@ -108,17 +108,11 @@
             <div class="flex space-x-3">
                 @if(($totalClassStreams ?? 0) > 0)
                     <div class="flex gap-2">
-                        <button type="button" onclick="openSetupModal('update')" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition"
-                           title="Add new classes and streams to existing structure">
-                            <i class="fas fa-plus mr-2"></i>
-                            Update Structure
-                        </button>
                         <button type="button" onclick="openSetupModal('fresh')" 
                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition"
                            title="Warning: This will delete all existing classes and create new ones">
                             <i class="fas fa-redo mr-2"></i>
-                            Reset & Re-setup
+                            Reset Classes
                         </button>
                     </div>
                     @can('classes.create')
@@ -132,7 +126,7 @@
                     <button type="button" onclick="openSetupModal('fresh')" 
                        class="inline-flex items-center px-4 py-2 bg-maroon border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-maroon-dark transition">
                         <i class="fas fa-magic mr-2"></i>
-                        Set Up Class Structure
+                        Setup Classes
                     </button>
                 @endif
             </div>
@@ -313,39 +307,47 @@
 
         <!-- Step 2: School Types -->
         <div id="step2" class="step-content hidden">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Select School Types</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose which types of education your school offers:</p>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Select School Types</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Choose which types of education your school offers:</p>
             
-            <div class="space-y-3">
-                <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+            <div class="space-y-2">
+                <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input type="checkbox" name="school_types" value="nursery" class="mr-3 text-maroon">
                     <div>
-                        <div class="font-medium text-gray-900 dark:text-white">Nursery</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Early childhood education (Baby, Middle, Top)</div>
+                        <div class="font-medium text-gray-900 dark:text-white text-sm">Nursery</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Early childhood education (Baby, Middle, Top)</div>
                     </div>
                 </label>
                 
-                <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input type="checkbox" name="school_types" value="primary" class="mr-3 text-maroon">
                     <div>
-                        <div class="font-medium text-gray-900 dark:text-white">Primary</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Primary education (P1 - P7)</div>
+                        <div class="font-medium text-gray-900 dark:text-white text-sm">Primary</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Primary education (P1 - P7)</div>
                     </div>
                 </label>
                 
-                <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input type="checkbox" name="school_types" value="secondary_o" class="mr-3 text-maroon">
                     <div>
-                        <div class="font-medium text-gray-900 dark:text-white">Secondary - O Level</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Ordinary Level (S1 - S4)</div>
+                        <div class="font-medium text-gray-900 dark:text-white text-sm">Secondary - O Level</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Ordinary Level (S1 - S4)</div>
                     </div>
                 </label>
                 
-                <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input type="checkbox" name="school_types" value="secondary_a" class="mr-3 text-maroon">
                     <div>
-                        <div class="font-medium text-gray-900 dark:text-white">Secondary - A Level</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Advanced Level (S5 - S6)</div>
+                        <div class="font-medium text-gray-900 dark:text-white text-sm">Secondary - A Level</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Advanced Level (S5 - S6)</div>
+                    </div>
+                </label>
+                
+                <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" name="school_types" value="other" class="mr-3 text-maroon">
+                    <div>
+                        <div class="font-medium text-gray-900 dark:text-white text-sm">Other</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Custom education levels</div>
                     </div>
                 </label>
             </div>
@@ -424,6 +426,18 @@
         <div id="step7" class="step-content hidden">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Preview</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Review the classes that will be created:</p>
+            
+            <!-- Loading indicator -->
+            <div id="previewLoading" class="text-center py-8 hidden">
+                <div class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-maroon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Generating preview...</span>
+                </div>
+            </div>
+            
             <div id="previewContainer" class="max-h-64 overflow-y-auto"></div>
         </div>
 
@@ -493,7 +507,8 @@ let setupWizardState = {
     hasStreams: false,
     streams: [],
     classStreamAssignments: {},
-    classOptionsCache: {} // Cache for class options
+    classOptionsCache: {}, // Cache for class options
+    previewCache: {} // Cache for preview data
 };
 
 // Modal functions
@@ -508,20 +523,11 @@ function openSetupModal(mode = 'fresh') {
     setupWizardState.mode = mode;
     setupWizardState.currentStep = 1;
     
-    if (mode === 'fresh') {
-        document.getElementById('step1Title').textContent = 'Set up your school class structure';
-        document.getElementById('step1Description').textContent = 'Generate classes and streams automatically.';
-        document.getElementById('freshModeWarning').style.display = 'block';
-        document.getElementById('updateModeInfo').style.display = 'none';
-    } else {
-        document.getElementById('step1Title').textContent = 'Update your class structure';
-        document.getElementById('step1Description').textContent = 'Add new classes and streams to your existing structure.';
-        document.getElementById('freshModeWarning').style.display = 'none';
-        document.getElementById('updateModeInfo').style.display = 'block';
-        
-        // Load existing structure for update mode
-        loadExistingStructure();
-    }
+    // Always show fresh mode UI since we only have one mode now
+    document.getElementById('step1Title').textContent = 'Set up your school class structure';
+    document.getElementById('step1Description').textContent = 'Generate classes and streams automatically.';
+    document.getElementById('freshModeWarning').style.display = 'block';
+    document.getElementById('updateModeInfo').style.display = 'none';
     
     updateStepDisplay();
 }
@@ -543,6 +549,12 @@ document.getElementById('classSetupModal').addEventListener('click', function(e)
 
 // Wizard navigation functions
 function nextStep() {
+    // Capture current step data before validation
+    if (setupWizardState.currentStep === 2) {
+        const selectedTypes = Array.from(document.querySelectorAll('input[name="school_types"]:checked')).map(cb => cb.value);
+        setupWizardState.schoolTypes = selectedTypes;
+    }
+    
     if (validateCurrentStep()) {
         if (setupWizardState.currentStep < setupWizardState.totalSteps) {
             setupWizardState.currentStep++;
@@ -607,7 +619,7 @@ function updateStepDisplay() {
     const finishBtn = document.getElementById('finishBtn');
     
     prevBtn.classList.toggle('hidden', setupWizardState.currentStep === 1);
-    nextBtn.classList.toggle('hidden', setupWizardState.currentStep === setupWizardState.totalSteps);
+    nextBtn.classList.toggle('hidden', setupWizardState.currentStep === setupWizardState.totalSteps || setupWizardState.currentStep === 7);
     confirmBtn.classList.toggle('hidden', setupWizardState.currentStep !== 7);
     finishBtn.classList.toggle('hidden', setupWizardState.currentStep !== 8);
     
@@ -676,6 +688,16 @@ async function loadClassOptions() {
     const loadingEl = document.getElementById('classSelectionLoading');
     const containerEl = document.getElementById('classSelectionContainer');
     
+    // Debug: Check if school types are properly set
+    console.log('Loading class options for school types:', setupWizardState.schoolTypes);
+    
+    if (!setupWizardState.schoolTypes || setupWizardState.schoolTypes.length === 0) {
+        console.error('No school types selected');
+        containerEl.innerHTML = '<div class="text-center py-4 text-red-600">No school types selected. Please go back and select school types.</div>';
+        containerEl.style.display = 'block';
+        return;
+    }
+    
     // Create cache key from selected school types
     const cacheKey = setupWizardState.schoolTypes.sort().join(',');
     
@@ -701,7 +723,12 @@ async function loadClassOptions() {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const classOptions = await response.json();
+        console.log('Received class options:', classOptions);
         
         // Cache the result
         setupWizardState.classOptionsCache[cacheKey] = classOptions;
@@ -726,6 +753,7 @@ function renderClassOptions(classOptions) {
     container.innerHTML = '';
     
     Object.keys(classOptions).forEach(categoryName => {
+        const safeCategoryName = sanitizeCategoryName(categoryName);
         const categoryDiv = document.createElement('div');
         categoryDiv.className = 'mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg';
         
@@ -733,18 +761,18 @@ function renderClassOptions(classOptions) {
             <div class="flex justify-between items-center mb-3">
                 <h4 class="font-medium text-gray-900 dark:text-white">${categoryName}</h4>
                 <div class="flex gap-2">
-                    <button type="button" onclick="selectAllClasses('${categoryName}')" class="text-xs text-maroon hover:text-maroon-dark">
+                    <button type="button" onclick="selectAllClasses('${safeCategoryName}')" class="text-xs text-maroon hover:text-maroon-dark">
                         <i class="fas fa-check-square mr-1"></i>Select All
                     </button>
-                    <button type="button" onclick="deselectAllClasses('${categoryName}')" class="text-xs text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="deselectAllClasses('${safeCategoryName}')" class="text-xs text-gray-500 hover:text-gray-700">
                         <i class="fas fa-square mr-1"></i>Deselect All
                     </button>
                 </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3" id="classes-grid-${categoryName}">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3" id="classes-grid-${safeCategoryName}">
                 ${classOptions[categoryName].map(className => `
                     <label class="flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <input type="checkbox" name="classes_${categoryName}" value="${className}" class="mr-2 text-maroon" checked>
+                        <input type="checkbox" name="classes_${safeCategoryName}" value="${className}" class="mr-2 text-maroon" checked>
                         <span class="text-sm">${className}</span>
                         <button type="button" onclick="removeDefaultClass(this)" class="ml-auto text-red-500 hover:text-red-700 text-xs" title="Remove this class">
                             <i class="fas fa-times"></i>
@@ -754,8 +782,8 @@ function renderClassOptions(classOptions) {
             </div>
             <div class="border-t border-gray-200 dark:border-gray-600 pt-3">
                 <div class="flex items-center gap-2 mb-2">
-                    <input type="text" id="custom-class-${categoryName}" placeholder="Add custom class (e.g., Pre-Unit)" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
-                    <button type="button" onclick="addCustomClass('${categoryName}')" class="px-3 py-2 bg-maroon text-white rounded-md text-sm hover:bg-maroon-dark">
+                    <input type="text" id="custom-class-${safeCategoryName}" placeholder="Add custom class (e.g., Pre-Unit)" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
+                    <button type="button" onclick="addCustomClass('${safeCategoryName}')" class="px-3 py-2 bg-maroon text-white rounded-md text-sm hover:bg-maroon-dark">
                         <i class="fas fa-plus mr-1"></i>Add
                     </button>
                 </div>
@@ -774,10 +802,10 @@ function renderClassOptions(classOptions) {
         });
         
         // Handle Enter key in custom class input
-        const customInput = categoryDiv.querySelector(`#custom-class-${categoryName}`);
+        const customInput = categoryDiv.querySelector(`#custom-class-${safeCategoryName}`);
         customInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                addCustomClass(categoryName);
+                addCustomClass(safeCategoryName);
             }
         });
     });
@@ -790,7 +818,9 @@ function updateSelectedClasses() {
     setupWizardState.selectedClasses = {};
     
     setupWizardState.schoolTypes.forEach(type => {
-        const checkboxes = document.querySelectorAll(`input[name="classes_${getSchoolTypeName(type)}"]:checked`);
+        const schoolTypeName = getSchoolTypeName(type);
+        const safeCategoryName = sanitizeCategoryName(schoolTypeName);
+        const checkboxes = document.querySelectorAll(`input[name="classes_${safeCategoryName}"]:checked`);
         const selectedClasses = Array.from(checkboxes).map(cb => cb.value);
         if (selectedClasses.length > 0) {
             setupWizardState.selectedClasses[type] = selectedClasses;
@@ -803,30 +833,36 @@ function getSchoolTypeName(type) {
         'nursery': 'Nursery',
         'primary': 'Primary',
         'secondary_o': 'Secondary - O Level',
-        'secondary_a': 'Secondary - A Level'
+        'secondary_a': 'Secondary - A Level',
+        'other': 'Other'
     };
     return mapping[type] || type;
 }
 
+// Helper function to create CSS-safe IDs from category names
+function sanitizeCategoryName(categoryName) {
+    return categoryName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+}
+
 // Class management functions
-function selectAllClasses(categoryName) {
-    const checkboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+function selectAllClasses(safeCategoryName) {
+    const checkboxes = document.querySelectorAll(`input[name="classes_${safeCategoryName}"]`);
     checkboxes.forEach(cb => {
         cb.checked = true;
     });
     updateSelectedClasses();
 }
 
-function deselectAllClasses(categoryName) {
-    const checkboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+function deselectAllClasses(safeCategoryName) {
+    const checkboxes = document.querySelectorAll(`input[name="classes_${safeCategoryName}"]`);
     checkboxes.forEach(cb => {
         cb.checked = false;
     });
     updateSelectedClasses();
 }
 
-function addCustomClass(categoryName) {
-    const input = document.getElementById(`custom-class-${categoryName}`);
+function addCustomClass(safeCategoryName) {
+    const input = document.getElementById(`custom-class-${safeCategoryName}`);
     const className = input.value.trim();
     
     if (!className) {
@@ -835,7 +871,7 @@ function addCustomClass(categoryName) {
     }
     
     // Check if class already exists
-    const existingCheckboxes = document.querySelectorAll(`input[name="classes_${categoryName}"]`);
+    const existingCheckboxes = document.querySelectorAll(`input[name="classes_${safeCategoryName}"]`);
     const existingClasses = Array.from(existingCheckboxes).map(cb => cb.value.toLowerCase());
     
     if (existingClasses.includes(className.toLowerCase())) {
@@ -844,11 +880,11 @@ function addCustomClass(categoryName) {
     }
     
     // Add the new class to the grid
-    const grid = document.getElementById(`classes-grid-${categoryName}`);
+    const grid = document.getElementById(`classes-grid-${safeCategoryName}`);
     const label = document.createElement('label');
     label.className = 'flex items-center p-2 border border-gray-200 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 bg-green-50 dark:bg-green-900/20';
     label.innerHTML = `
-        <input type="checkbox" name="classes_${categoryName}" value="${className}" class="mr-2 text-maroon" checked>
+        <input type="checkbox" name="classes_${safeCategoryName}" value="${className}" class="mr-2 text-maroon" checked>
         <span class="text-sm">${className}</span>
         <button type="button" onclick="removeCustomClass(this)" class="ml-auto text-red-500 hover:text-red-700 text-xs" title="Remove this custom class">
             <i class="fas fa-trash"></i>
@@ -869,10 +905,8 @@ function addCustomClass(categoryName) {
 }
 
 function removeDefaultClass(button) {
-    if (confirm('Are you sure you want to remove this default class?')) {
-        button.closest('label').remove();
-        updateSelectedClasses();
-    }
+    button.closest('label').remove();
+    updateSelectedClasses();
 }
 
 function removeCustomClass(button) {
@@ -985,6 +1019,27 @@ function generateStreamAssignments() {
 }
 
 async function generatePreview() {
+    const loadingEl = document.getElementById('previewLoading');
+    const containerEl = document.getElementById('previewContainer');
+    
+    // Create cache key from current state
+    const cacheKey = JSON.stringify({
+        schoolTypes: setupWizardState.schoolTypes.sort(),
+        selectedClasses: setupWizardState.selectedClasses,
+        hasStreams: setupWizardState.hasStreams,
+        streams: setupWizardState.streams.sort()
+    });
+    
+    // Check if we have cached data
+    if (setupWizardState.previewCache[cacheKey]) {
+        renderPreview(setupWizardState.previewCache[cacheKey]);
+        return;
+    }
+    
+    // Show loading, hide container
+    loadingEl.classList.remove('hidden');
+    containerEl.style.display = 'none';
+    
     try {
         const response = await fetch('{{ route("api.classes.setup-wizard.preview") }}', {
             method: 'POST',
@@ -1001,10 +1056,22 @@ async function generatePreview() {
         });
         
         const preview = await response.json();
+        
+        // Cache the result
+        setupWizardState.previewCache[cacheKey] = preview;
+        
+        // Hide loading, show container
+        loadingEl.classList.add('hidden');
+        containerEl.style.display = 'block';
+        
         renderPreview(preview);
     } catch (error) {
         console.error('Error generating preview:', error);
-        alert('Error generating preview. Please try again.');
+        
+        // Hide loading, show error
+        loadingEl.classList.add('hidden');
+        containerEl.innerHTML = '<div class="text-center py-4 text-red-600">Error generating preview. Please try again.</div>';
+        containerEl.style.display = 'block';
     }
 }
 

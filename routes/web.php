@@ -5,8 +5,6 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\ClassSetupWizardController;
-use App\Http\Controllers\ClassLevelController;
-use App\Http\Controllers\ClassCategoryController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\MarkController;
@@ -211,99 +209,6 @@ Route::post('/teachers/{teacher}/update-assignments', [TeacherController::class,
 
 
 // Route::put('teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
-    // ========================================
-    // CLASS CATEGORY MANAGEMENT
-    // ========================================
-    Route::middleware('permission:classes.view')->group(function () {
-        Route::get('class-categories', [ClassCategoryController::class, 'index'])->name('class-categories.index');
-    });
-
-    Route::get('class-categories/create', [ClassCategoryController::class, 'create'])
-        ->middleware('permission:classes.create')
-        ->name('class-categories.create');
-
-    Route::post('class-categories', [ClassCategoryController::class, 'store'])
-        ->middleware('permission:classes.create')
-        ->name('class-categories.store');
-
-    Route::get('class-categories/{class_category}', [ClassCategoryController::class, 'show'])
-        ->middleware('permission:classes.view-detail')
-        ->name('class-categories.show');
-
-    Route::get('class-categories/{class_category}/edit', [ClassCategoryController::class, 'edit'])
-        ->middleware('permission:classes.edit')
-        ->name('class-categories.edit');
-
-    Route::put('class-categories/{class_category}', [ClassCategoryController::class, 'update'])
-        ->middleware('permission:classes.edit')
-        ->name('class-categories.update');
-
-    Route::delete('class-categories/{class_category}', [ClassCategoryController::class, 'destroy'])
-        ->middleware('permission:classes.delete')
-        ->name('class-categories.destroy');
-
-    // ========================================
-    // CLASS LEVEL MANAGEMENT
-    // ========================================
-    Route::middleware('permission:classes.view')->group(function () {
-        Route::get('class-levels', [ClassLevelController::class, 'index'])->name('class-levels.index');
-    });
-
-    Route::get('class-levels/create', [ClassLevelController::class, 'create'])
-        ->middleware('permission:classes.create')
-        ->name('class-levels.create');
-
-    Route::post('class-levels', [ClassLevelController::class, 'store'])
-        ->middleware('permission:classes.create')
-        ->name('class-levels.store');
-
-    Route::get('class-levels/{class_level}', [ClassLevelController::class, 'show'])
-        ->middleware('permission:classes.view-detail')
-        ->name('class-levels.show');
-
-    Route::get('class-levels/{class_level}/edit', [ClassLevelController::class, 'edit'])
-        ->middleware('permission:classes.edit')
-        ->name('class-levels.edit');
-
-    Route::put('class-levels/{class_level}', [ClassLevelController::class, 'update'])
-        ->middleware('permission:classes.edit')
-        ->name('class-levels.update');
-
-    Route::delete('class-levels/{class_level}', [ClassLevelController::class, 'destroy'])
-        ->middleware('permission:classes.delete')
-        ->name('class-levels.destroy');
-
-    // ========================================
-    // STREAM MANAGEMENT
-    // ========================================
-    Route::middleware('permission:classes.view')->group(function () {
-        Route::get('streams', [StreamController::class, 'index'])->name('streams.index');
-    });
-
-    Route::get('streams/create', [StreamController::class, 'create'])
-        ->middleware('permission:classes.create')
-        ->name('streams.create');
-
-    Route::post('streams', [StreamController::class, 'store'])
-        ->middleware('permission:classes.create')
-        ->name('streams.store');
-
-    Route::get('streams/{stream}', [StreamController::class, 'show'])
-        ->middleware('permission:classes.view-detail')
-        ->name('streams.show');
-
-    Route::get('streams/{stream}/edit', [StreamController::class, 'edit'])
-        ->middleware('permission:classes.edit')
-        ->name('streams.edit');
-
-    Route::put('streams/{stream}', [StreamController::class, 'update'])
-        ->middleware('permission:classes.edit')
-        ->name('streams.update');
-
-    Route::delete('streams/{stream}', [StreamController::class, 'destroy'])
-        ->middleware('permission:classes.delete')
-        ->name('streams.destroy');
-
     // ========================================
     // CLASS MANAGEMENT - Protected
     // ========================================

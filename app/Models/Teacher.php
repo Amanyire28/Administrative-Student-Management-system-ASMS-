@@ -56,7 +56,7 @@ class Teacher extends Model
 
     public function classes()
     {
-        return $this->belongsToMany(ClassModel::class, 'class_teacher', 'teacher_id', 'class_id')
+        return $this->belongsToMany(ClassStream::class, 'class_stream_teacher', 'teacher_id', 'class_stream_id')
             ->withPivot('is_class_teacher')
             ->withTimestamps();
     }
@@ -145,10 +145,10 @@ class Teacher extends Model
     /**
      * Helper Methods
      */
-    public function assignToClass($classId, $isClassTeacher = false)
+    public function assignToClass($classStreamId, $isClassTeacher = false)
     {
         return $this->classes()->syncWithoutDetaching([
-            $classId => ['is_class_teacher' => $isClassTeacher]
+            $classStreamId => ['is_class_teacher' => $isClassTeacher]
         ]);
     }
 
@@ -157,10 +157,10 @@ class Teacher extends Model
         return $this->subjects()->syncWithoutDetaching([$subjectId]);
     }
 
-    public function isClassTeacherOf($classId)
+    public function isClassTeacherOf($classStreamId)
     {
         return $this->classes()
-            ->where('class_id', $classId)
+            ->where('class_stream_id', $classStreamId)
             ->where('is_class_teacher', true)
             ->exists();
     }
