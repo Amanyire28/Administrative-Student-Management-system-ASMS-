@@ -880,6 +880,35 @@ function removeCustomClass(button) {
     updateSelectedClasses();
 }
 
+// Stream assignment management functions
+function selectAllStreamsForCategory(schoolType) {
+    const checkboxes = document.querySelectorAll(`input[name^="stream_${schoolType}_"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+    });
+}
+
+function deselectAllStreamsForCategory(schoolType) {
+    const checkboxes = document.querySelectorAll(`input[name^="stream_${schoolType}_"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+}
+
+function selectAllStreamsForClass(schoolType, className) {
+    const checkboxes = document.querySelectorAll(`input[name="stream_${schoolType}_${className}"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+    });
+}
+
+function deselectAllStreamsForClass(schoolType, className) {
+    const checkboxes = document.querySelectorAll(`input[name="stream_${schoolType}_${className}"]`);
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+}
+
 // Stream management functions
 function addStreamInput() {
     const container = document.getElementById('streamInputs');
@@ -913,15 +942,35 @@ function generateStreamAssignments() {
         categoryDiv.className = 'mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg';
         
         categoryDiv.innerHTML = `
-            <h4 class="font-medium text-gray-900 dark:text-white mb-3">${schoolTypeName}</h4>
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="font-medium text-gray-900 dark:text-white">${schoolTypeName}</h4>
+                <div class="flex gap-2">
+                    <button type="button" onclick="selectAllStreamsForCategory('${schoolType}')" class="text-xs text-maroon hover:text-maroon-dark">
+                        <i class="fas fa-check-square mr-1"></i>Select All Streams
+                    </button>
+                    <button type="button" onclick="deselectAllStreamsForCategory('${schoolType}')" class="text-xs text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-square mr-1"></i>Deselect All Streams
+                    </button>
+                </div>
+            </div>
             <div class="space-y-3">
                 ${classes.map(className => `
                     <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                        <div class="font-medium text-sm mb-2">${className}</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="font-medium text-sm">${className}</div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="selectAllStreamsForClass('${schoolType}', '${className}')" class="text-xs text-maroon hover:text-maroon-dark">
+                                    <i class="fas fa-check-square mr-1"></i>All
+                                </button>
+                                <button type="button" onclick="deselectAllStreamsForClass('${schoolType}', '${className}')" class="text-xs text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-square mr-1"></i>None
+                                </button>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                             ${setupWizardState.streams.map(streamName => `
-                                <label class="flex items-center text-sm">
-                                    <input type="checkbox" name="stream_${schoolType}_${className}" value="${streamName}" class="mr-2 text-maroon">
+                                <label class="flex items-center text-sm p-2 border border-gray-200 dark:border-gray-600 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <input type="checkbox" name="stream_${schoolType}_${className}" value="${streamName}" class="mr-2 text-maroon" checked>
                                     ${streamName}
                                 </label>
                             `).join('')}
