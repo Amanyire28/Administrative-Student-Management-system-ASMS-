@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Class Details')
-@section('page-title', $class->full_name)
+@section('page-title', $class->full_name ?? $class->name)
 @section('page-description', 'Class information and management')
 
 @section('content')
@@ -12,7 +12,7 @@
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">{{ $class->full_name }}</h2>
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">{{ $class->full_name ?? $class->name }}</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Class Details and Management</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -42,11 +42,11 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Class Level</p>
                             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->classLevel->name }}
+                                {{ $class->classLevel->name ?? 'N/A' }}
                             </p>
-                            @if($class->classLevel->category)
+                            @if($class->classLevel && $class->classLevel->schoolType)
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $class->classLevel->category }}
+                                    {{ $class->classLevel->schoolType->name }}
                                 </p>
                             @endif
                         </div>
@@ -62,9 +62,9 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Stream</p>
                             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->stream->name }}
+                                {{ $class->stream->name ?? 'No stream' }}
                             </p>
-                            @if($class->stream->description)
+                            @if($class->stream && $class->stream->description)
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ $class->stream->description }}
                                 </p>
@@ -82,7 +82,7 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Level Teacher</p>
                             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                @if($class->classLevel->levelTeacher)
+                                @if($class->classLevel && $class->classLevel->levelTeacher)
                                     {{ $class->classLevel->levelTeacher->first_name }} {{ $class->classLevel->levelTeacher->last_name }}
                                 @else
                                     <span class="text-gray-400 italic text-sm">Not assigned</span>
@@ -120,22 +120,7 @@
                         <div class="ml-3">
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Enrolled</p>
                             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->students->count() }} students
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Classroom -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-door-open text-indigo-600 dark:text-indigo-400 text-xl"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Classroom</p>
-                            <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $class->classroom ?? 'Not assigned' }}
+                                {{ $class->students->count() ?? 0 }} students
                             </p>
                         </div>
                     </div>
@@ -160,85 +145,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Teacher Information -->
-            <div class="mt-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Teacher Information</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Level Teacher -->
-                    @if($class->classLevel->levelTeacher)
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                            <i class="fas fa-user-tie text-indigo-600 dark:text-indigo-400 mr-2"></i>
-                            Level Teacher
-                        </h4>
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">
-                                    {{ substr($class->classLevel->levelTeacher->first_name, 0, 1) }}{{ substr($class->classLevel->levelTeacher->last_name, 0, 1) }}
-                                </span>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900 dark:text-gray-100">
-                                    {{ $class->classLevel->levelTeacher->first_name }} {{ $class->classLevel->levelTeacher->last_name }}
-                                </p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Oversees all {{ $class->classLevel->name }} classes
-                                </p>
-                                @if($class->classLevel->levelTeacher->email)
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <i class="fas fa-envelope mr-1"></i>{{ $class->classLevel->levelTeacher->email }}
-                                    </p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    <!-- Class Teacher -->
-                    @if($class->classTeacher)
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                            <i class="fas fa-chalkboard-teacher text-green-600 dark:text-green-400 mr-2"></i>
-                            Class Teacher
-                        </h4>
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-maroon to-maroon-dark rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">
-                                    {{ substr($class->classTeacher->first_name, 0, 1) }}{{ substr($class->classTeacher->last_name, 0, 1) }}
-                                </span>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900 dark:text-gray-100">
-                                    {{ $class->classTeacher->first_name }} {{ $class->classTeacher->last_name }}
-                                </p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Manages {{ $class->full_name }} specifically
-                                </p>
-                                @if($class->classTeacher->email)
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        <i class="fas fa-envelope mr-1"></i>{{ $class->classTeacher->email }}
-                                    </p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if(!$class->classLevel->levelTeacher && !$class->classTeacher)
-                    <div class="col-span-2 text-center py-8">
-                        <i class="fas fa-user-slash text-4xl text-gray-400 dark:text-gray-600 mb-4"></i>
-                        <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Teachers Assigned</h4>
-                        <p class="text-gray-600 dark:text-gray-400 mb-4">This class doesn't have any teachers assigned yet.</p>
-                        <a href="{{ route('classes.edit', $class) }}" 
-                           class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white text-sm font-medium rounded-lg transition-colors">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Assign Teachers
-                        </a>
-                    </div>
-                    @endif
-                </div>
-            </div>
         </div>
     </div>
 
@@ -247,7 +153,7 @@
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Students in {{ $class->full_name }}
+                    Students in {{ $class->full_name ?? $class->name }}
                 </h3>
                 <a href="{{ route('students.create') }}?class_id={{ $class->id }}" 
                    class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
@@ -258,7 +164,7 @@
         </div>
 
         <div class="p-6">
-            @if($class->students->count() > 0)
+            @if($class->students && $class->students->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700">
@@ -317,7 +223,7 @@
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Subjects for {{ $class->full_name }}
+                    Subjects for {{ $class->full_name ?? $class->name }}
                 </h3>
                 <button onclick="showAssignSubjectsModal()" 
                         class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
@@ -328,7 +234,7 @@
         </div>
 
         <div class="p-6">
-            @if($class->subjects->count() > 0)
+            @if($class->subjects && $class->subjects->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($class->subjects as $subject)
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
@@ -336,7 +242,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $subject->name }}</h4>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ $subject->code }}</p>
-                                @if($subject->pivot->teacher)
+                                @if($subject->pivot && $subject->pivot->teacher)
                                     <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
                                         Teacher: {{ $subject->pivot->teacher->first_name }} {{ $subject->pivot->teacher->last_name }}
                                     </p>

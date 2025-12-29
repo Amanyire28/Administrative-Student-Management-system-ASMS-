@@ -2,143 +2,179 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ClassModel;
-use App\Models\Subject;
-use App\Models\Teacher;
+use Illuminate\Http\Request;
 use App\Models\ClassLevel;
 use App\Models\Stream;
-use Illuminate\Http\Request;
+use App\Models\ClassStream;
+use App\Models\Teacher;
+use App\Models\SchoolType;
 
 class ClassController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of classes
      */
     public function index()
     {
-        $classes = ClassModel::with(['classTeacher', 'classLevel', 'stream'])->withCount('students')->paginate(15);
-        return view('modules.classes.index', compact('classes'));
+        // Load existing class structure grouped by school type
+        $classLevels = ClassLevel::with([
+            'classStreams.stream',
+            'classStreams.students',
+            'schoolType'
+        ])
+        ->orderBy('school_type_id')
+        ->orderBy('sort_order')
+        ->get();
+        
+        // Get all class streams for the table
+        $classStreams = ClassStream::with([
+            'classLevel.schoolType',
+            'stream',
+            'students'
+        ])
+        ->orderBy('name')
+        ->get();
+        
+        // Group class levels by school type for display
+        $categories = $classLevels->groupBy('school_type_id')->map(function ($levels, $schoolTypeId) {
+            $schoolType = $levels->first()->schoolType;
+            return (object) [
+                'name' => $schoolType ? $schoolType->name : 'Unknown',
+                'classLevels' => $levels
+            ];
+        });
+            
+        $totalClassLevels = ClassLevel::count();
+        $totalStreams = Stream::count();
+        $totalClassStreams = ClassStream::count();
+        
+        return view('modules.classes.index', compact(
+            'categories', 
+            'classStreams',
+            'totalClassLevels', 
+            'totalStreams', 
+            'totalClassStreams'
+        ));
     }
-
+    
     /**
-     * Show the form for creating a new resource.
+     * Show the class setup wizard
+     */
+    public function setupWizard()
+    {
+        return view('modules.classes.setup-wizard');
+    }
+    
+    /**
+     * Show the form for creating a new class
      */
     public function create()
     {
-        $teachers = Teacher::orderBy('first_name')->get();
-        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
-        $streams = Stream::active()->ordered()->get();
-
-        return view('modules.classes.create', compact('teachers', 'classLevels', 'streams'));
+        $classLevels = ClassLevel::with('schoolType')->where('is_active', true)->orderBy('sort_order')->get();
+        $streams = Stream::where('is_active', true)->orderBy('sort_order')->get();
+        $teachers = Teacher::where('is_active', true)->orderBy('first_name')->get();
+        
+        return view('modules.classes.create', compact('classLevels', 'streams', 'teachers'));
     }
-
+    
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created class in storage
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'class_level_id' => 'required|exists:class_levels,id',
-            'stream_id' => 'required|exists:streams,id',
-            'classroom' => 'nullable|string|max:255',
-            'class_teacher_id' => 'nullable|exists:teachers,id'
+            'stream_id' => 'nullable|exists:streams,id',
+            'name' => 'required|string|max:255|unique:class_streams,name',
+            'class_teacher_id' => 'nullable|exists:teachers,id',
         ]);
-
-        // Generate name from class_level and stream
-        $classLevel = ClassLevel::find($validated['class_level_id']);
-        $stream = Stream::find($validated['stream_id']);
-        $validated['name'] = $classLevel->name . ' ' . $stream->name;
-
-        ClassModel::create($validated);
-
+        
+        ClassStream::create([
+            'class_level_id' => $request->class_level_id,
+            'stream_id' => $request->stream_id,
+            'name' => $request->name,
+            'class_teacher_id' => $request->class_teacher_id,
+            'is_active' => true,
+        ]);
+        
         return redirect()->route('classes.index')
-                        ->with('success', 'Class created successfully.');
+            ->with('success', 'Class created successfully!');
     }
-
+    
     /**
-     * Display the specified resource.
+     * Display the specified class
      */
-    public function show(ClassModel $class)
+    public function show(ClassStream $class)
     {
-        $class->load(['students', 'subjects.pivot.teacher', 'teachers', 'classTeacher']);
+        $class->load(['classLevel', 'stream', 'students', 'subjects']);
+        
         return view('modules.classes.show', compact('class'));
     }
-
+    
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified class
      */
-    public function edit(ClassModel $class)
+    public function edit(ClassStream $class)
     {
-        $teachers = Teacher::orderBy('first_name')->get();
-        $classLevels = ClassLevel::with('category')->active()->ordered()->get();
-        $streams = Stream::active()->ordered()->get();
-
-        return view('modules.classes.edit', compact('class', 'teachers', 'classLevels', 'streams'));
+        $classLevels = ClassLevel::with('schoolType')->where('is_active', true)->orderBy('sort_order')->get();
+        $streams = Stream::where('is_active', true)->orderBy('sort_order')->get();
+        $teachers = Teacher::where('is_active', true)->orderBy('first_name')->get();
+        
+        return view('modules.classes.edit', compact('class', 'classLevels', 'streams', 'teachers'));
     }
-
+    
     /**
-     * Update the specified resource in storage.
+     * Update the specified class in storage
      */
-    public function update(Request $request, ClassModel $class)
+    public function update(Request $request, ClassStream $class)
     {
-        $validated = $request->validate([
+        $request->validate([
             'class_level_id' => 'required|exists:class_levels,id',
-            'stream_id' => 'required|exists:streams,id',
-            'classroom' => 'nullable|string|max:255',
+            'stream_id' => 'nullable|exists:streams,id',
+            'name' => 'required|string|max:255|unique:class_streams,name,' . $class->id,
             'class_teacher_id' => 'nullable|exists:teachers,id',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
-
-        // Generate name from class_level and stream
-        $classLevel = ClassLevel::find($validated['class_level_id']);
-        $stream = Stream::find($validated['stream_id']);
-        $validated['name'] = $classLevel->name . ' ' . $stream->name;
-
-        $class->update($validated);
-
+        
+        $class->update([
+            'class_level_id' => $request->class_level_id,
+            'stream_id' => $request->stream_id,
+            'name' => $request->name,
+            'class_teacher_id' => $request->class_teacher_id,
+            'is_active' => $request->has('is_active'),
+        ]);
+        
         return redirect()->route('classes.index')
-                        ->with('success', 'Class updated successfully.');
+            ->with('success', 'Class updated successfully!');
     }
-
+    
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified class from storage
      */
-    public function destroy(ClassModel $class)
+    public function destroy(ClassStream $class)
     {
         // Check if class has students
         if ($class->students()->count() > 0) {
             return redirect()->route('classes.index')
-                            ->with('error', 'Cannot delete class with enrolled students.');
+                ->with('error', 'Cannot delete class that has students enrolled.');
         }
-
+        
         $class->delete();
-
+        
         return redirect()->route('classes.index')
-                        ->with('success', 'Class deleted successfully.');
+            ->with('success', 'Class deleted successfully!');
     }
-
+    
     /**
-     * Assign subjects to class
+     * Clear all class data (for testing)
      */
-    public function assignSubjects(Request $request, ClassModel $class)
+    public function clearAll()
     {
-        $validated = $request->validate([
-            'subjects' => 'required|array',
-            'subjects.*' => 'exists:subjects,id',
-            'teachers' => 'array',
-            'teachers.*' => 'nullable|exists:teachers,id'
-        ]);
-
-        $syncData = [];
-        foreach ($validated['subjects'] as $index => $subjectId) {
-            $syncData[$subjectId] = [
-                'teacher_id' => $validated['teachers'][$index] ?? null
-            ];
-        }
-
-        $class->subjects()->sync($syncData);
-
-        return redirect()->route('classes.show', $class)
-                        ->with('success', 'Subjects assigned successfully.');
+        ClassStream::truncate();
+        ClassLevel::truncate();
+        Stream::truncate();
+        
+        return redirect()->route('classes.index')
+            ->with('success', 'All class data cleared successfully!');
     }
 }

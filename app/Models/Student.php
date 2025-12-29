@@ -21,7 +21,7 @@ class Student extends Model
         'parent_name',
         'parent_phone',
         'parent_email',
-        'class_id',
+        'class_stream_id',
         'enrollment_date',
         'photo',
         'is_active'
@@ -34,9 +34,15 @@ class Student extends Model
     ];
 
     // Relationships
+    public function classStream()
+    {
+        return $this->belongsTo(ClassStream::class, 'class_stream_id');
+    }
+
+    // Backward compatibility - alias for classStream
     public function class()
     {
-        return $this->belongsTo(ClassModel::class, 'class_id');
+        return $this->classStream();
     }
 
     public function marks()

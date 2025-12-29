@@ -21,9 +21,9 @@ class Stream extends Model
     ];
 
     // Relationships
-    public function classes()
+    public function classStreams()
     {
-        return $this->hasMany(ClassModel::class, 'stream_id');
+        return $this->hasMany(ClassStream::class, 'stream_id');
     }
 
     // Scopes

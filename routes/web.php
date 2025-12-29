@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\ClassSetupWizardController;
 use App\Http\Controllers\ClassLevelController;
 use App\Http\Controllers\ClassCategoryController;
 use App\Http\Controllers\StreamController;
@@ -51,7 +52,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     })->name('password.change');
 
     Route::post('/password/change', [PasswordChangeController::class, 'update'])
-        ->name('password.update');
+        ->name('password.change.update');
 });
 
 Route::post('/logout', function () {
@@ -308,6 +309,15 @@ Route::post('/teachers/{teacher}/update-assignments', [TeacherController::class,
     // ========================================
     Route::middleware('permission:classes.view')->group(function () {
         Route::get('classes', [ClassController::class, 'index'])->name('classes.index');
+        Route::get('classes/setup-wizard', [ClassController::class, 'setupWizard'])->name('classes.setup-wizard');
+    });
+
+    // Class Setup Wizard API Routes
+    Route::prefix('api/classes/setup-wizard')->middleware('permission:classes.create')->group(function () {
+        Route::get('existing-structure', [App\Http\Controllers\ClassSetupWizardController::class, 'getExistingStructure'])->name('api.classes.setup-wizard.existing-structure');
+        Route::post('class-options', [App\Http\Controllers\ClassSetupWizardController::class, 'getClassOptions'])->name('api.classes.setup-wizard.class-options');
+        Route::post('preview', [App\Http\Controllers\ClassSetupWizardController::class, 'getPreview'])->name('api.classes.setup-wizard.preview');
+        Route::post('save', [App\Http\Controllers\ClassSetupWizardController::class, 'saveClassStructure'])->name('api.classes.setup-wizard.save');
     });
 
     Route::get('classes/create', [ClassController::class, 'create'])

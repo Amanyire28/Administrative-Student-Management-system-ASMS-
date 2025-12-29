@@ -37,11 +37,11 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             required>
                         <option value="">Select Class Level</option>
-                        @foreach($classLevels as $level)
+                        @foreach($classLevels ?? [] as $level)
                             <option value="{{ $level->id }}" {{ old('class_level_id') == $level->id ? 'selected' : '' }}>
                                 {{ $level->name }}
-                                @if($level->category)
-                                    ({{ $level->category->name }})
+                                @if($level->schoolType)
+                                    ({{ $level->schoolType->name }})
                                 @endif
                             </option>
                         @endforeach
@@ -49,10 +49,10 @@
                     @error('class_level_id')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
-                    @if($classLevels->count() == 0)
+                    @if(($classLevels ?? collect())->count() == 0)
                         <p class="text-yellow-600 text-sm mt-1">
                             <i class="fas fa-exclamation-triangle mr-1"></i>
-                            No class levels available. <a href="{{ route('class-levels.create') }}" class="underline">Add one first</a>.
+                            No class levels available. <a href="{{ route('classes.index') }}" class="underline">Set up class structure first</a>.
                         </p>
                     @endif
                 </div>
@@ -60,14 +60,13 @@
                 <!-- Stream -->
                 <div>
                     <label for="stream_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Stream <span class="text-red-500">*</span>
+                        Stream
                     </label>
                     <select id="stream_id" 
                             name="stream_id"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            required>
-                        <option value="">Select Stream</option>
-                        @foreach($streams as $stream)
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                        <option value="">Select Stream (Optional)</option>
+                        @foreach($streams ?? [] as $stream)
                             <option value="{{ $stream->id }}" {{ old('stream_id') == $stream->id ? 'selected' : '' }}>
                                 {{ $stream->name }}
                                 @if($stream->description)
@@ -79,10 +78,10 @@
                     @error('stream_id')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
-                    @if($streams->count() == 0)
+                    @if(($streams ?? collect())->count() == 0)
                         <p class="text-yellow-600 text-sm mt-1">
                             <i class="fas fa-exclamation-triangle mr-1"></i>
-                            No streams available. <a href="{{ route('streams.create') }}" class="underline">Add one first</a>.
+                            No streams available. <a href="{{ route('classes.index') }}" class="underline">Set up class structure first</a>.
                         </p>
                     @endif
                 </div>
@@ -96,7 +95,7 @@
                             name="class_teacher_id"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                         <option value="">Select Class Teacher</option>
-                        @foreach($teachers as $teacher)
+                        @foreach($teachers ?? [] as $teacher)
                             <option value="{{ $teacher->id }}" {{ old('class_teacher_id') == $teacher->id ? 'selected' : '' }}>
                                 {{ $teacher->first_name }} {{ $teacher->last_name }}
                             </option>
@@ -106,22 +105,23 @@
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-            </div>
 
-            <!-- Classroom -->
-            <div>
-                <label for="classroom" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Classroom/Room Number
-                </label>
-                <input type="text" 
-                       id="classroom" 
-                       name="classroom" 
-                       value="{{ old('classroom') }}"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                       placeholder="e.g., Room 101, Block A">
-                @error('classroom')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <!-- Class Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Class Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="name" 
+                           name="name" 
+                           value="{{ old('name') }}"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-maroon/50 focus:border-maroon bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                           placeholder="e.g., P1A, S2 Blue"
+                           required>
+                    @error('name')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <!-- Form Actions -->

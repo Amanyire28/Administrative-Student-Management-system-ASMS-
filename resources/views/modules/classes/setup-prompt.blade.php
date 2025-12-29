@@ -55,10 +55,10 @@
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 mr-3">
                         <i class="fas fa-tags text-purple-600 dark:text-purple-400"></i>
                     </div>
-                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Categories</h4>
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">School Types</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Organize classes into categories like Nursery, Primary, Secondary for better management.
+                    Organize classes into school types like Nursery, Primary, Secondary for better management.
                 </p>
             </div>
             
@@ -99,7 +99,7 @@
                     Setup Guide
                 </a>
                 <span class="text-gray-300 dark:text-gray-600">|</span>
-                <a href="#" class="text-sm text-maroon hover:text-maroon-dark transition-colors">
+                <a href="{{ route('classes.create') }}" class="text-sm text-maroon hover:text-maroon-dark transition-colors">
                     <i class="fas fa-cog mr-1"></i>
                     Manual Setup
                 </a>
